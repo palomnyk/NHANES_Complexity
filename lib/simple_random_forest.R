@@ -1,5 +1,5 @@
 # Author: Aaron Yerke (aaronyerke@gmail.com)
-# Script for exploring NHANES
+# Script for running random forest on NHANES data
 
 rm(list = ls()) #clear workspace
 
@@ -53,6 +53,7 @@ print("loeaded data")
 row.names(BP_2015) <- BP_2015$Respondent.sequence.number.
 BP_2015 <- BP_2015["Systolic...Blood.pressure..first.reading..mm.Hg"]
 BP_2015 <- na.omit(BP_2015)
+hyper1_2015 <- BP_2015 >= 130
 my_intersect <- intersect(row.names(BP_2015),
                           diet_2015$Respondent.sequence.number.)
 diet_2015 <- diet_2015[diet_2015$Respondent.sequence.number. %in% my_intersect,]
@@ -61,6 +62,7 @@ names(my_resp) <- my_intersect
 
 cross_vals <- split(sample(my_intersect, size = length(my_intersect)), cut(seq(length(my_intersect)), cv_folds))
 
+#reogranize with dummy variables to work with RF
 diet_2015 <- fastDummies::dummy_cols(diet_2015, select_columns = c("USDA.food.code"),
                                 ignore_na = TRUE, remove_selected_columns = TRUE)
 # test1 <- aggregate(test, )
@@ -71,21 +73,24 @@ diet_2015 <- rowsum(diet_2015[,3:ncol(diet_2015)],
 #### Loop through for random forest ####
 r_sqs <- c()
 
+my_resp <- hyper1_2015
+
 for (cv in 1:cv_folds){
   test_fold <- as.character(cross_vals[[cv]]) #SEQN for testing
   train_fold <- as.character(my_intersect[!my_intersect %in% test_fold]) #SEQN for training
   predct_tst <- diet_2015[test_fold,]
   predct_trn <- diet_2015[train_fold,]
-  resp_trn <- BP_2015[train_fold, ]
-  resp_tst <- BP_2015[test_fold , ]
+  resp_trn <- my_resp[train_fold, ]
+  resp_tst <- my_resp[test_fold , ]
   rf <- randomForest::randomForest(predct_trn, resp_trn)
   print("made rf")
   pred <- predict(rf, predct_tst)
   my_lm <- lm(pred ~ resp_tst)
   r_sqs <- c(r_sqs, summary(my_lm)$r.squared)
+  print(paste(r_sqs, collapse = ", "))
 }
 
-write.csv(rf$importance, file = file.path(output_dir, "rf_importance.csv"))
+write.csv(rf$importance, file = file.path(output_dir, "rf_importance_hyperDiet2015.csv"))
 
 
 
