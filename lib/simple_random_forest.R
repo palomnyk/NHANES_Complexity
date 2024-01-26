@@ -50,6 +50,15 @@ BP_2015 <- read.csv(file = file.path(output_dir, "BP_2015.csv"), header = T,
 print("loeaded data")
 
 #### Small amount data cleaning ####
+#reogranize with dummy variables to work with RF
+diet_2015 <- fastDummies::dummy_cols(diet_2015, select_columns = c("USDA.food.code"),
+                                     ignore_na = TRUE, remove_selected_columns = TRUE)
+
+diet_2015 <- rowsum(diet_2015[,3:ncol(diet_2015)],
+                    group = diet_2015$Respondent.sequence.number.,na.rm=T)
+
+
+#create response var
 row.names(BP_2015) <- BP_2015$Respondent.sequence.number.
 BP_2015 <- BP_2015["Systolic...Blood.pressure..first.reading..mm.Hg"]
 BP_2015 <- na.omit(BP_2015)
@@ -61,37 +70,41 @@ my_resp <- BP_2015[my_intersect,]
 names(my_resp) <- my_intersect
 
 cross_vals <- split(sample(my_intersect, size = length(my_intersect)), cut(seq(length(my_intersect)), cv_folds))
+#### Random forest ####
 
-#reogranize with dummy variables to work with RF
-diet_2015 <- fastDummies::dummy_cols(diet_2015, select_columns = c("USDA.food.code"),
-                                ignore_na = TRUE, remove_selected_columns = TRUE)
-# test1 <- aggregate(test, )
-
-diet_2015 <- rowsum(diet_2015[,3:ncol(diet_2015)],
-                    group = diet_2015$Respondent.sequence.number.,na.rm=T)
-
-#### Loop through for random forest ####
-r_sqs <- c()
-
-my_resp <- hyper1_2015
-
-for (cv in 1:cv_folds){
-  test_fold <- as.character(cross_vals[[cv]]) #SEQN for testing
-  train_fold <- as.character(my_intersect[!my_intersect %in% test_fold]) #SEQN for training
-  predct_tst <- diet_2015[test_fold,]
-  predct_trn <- diet_2015[train_fold,]
-  resp_trn <- my_resp[train_fold, ]
-  resp_tst <- my_resp[test_fold , ]
-  rf <- randomForest::randomForest(predct_trn, resp_trn)
-  print("made rf")
-  pred <- predict(rf, predct_tst)
-  my_lm <- lm(pred ~ resp_tst)
-  r_sqs <- c(r_sqs, summary(my_lm)$r.squared)
-  print(paste(r_sqs, collapse = ", "))
+rf_regress <- function(cross_vals, my_resp, my_predict, test_fold, intrsct, 
+                       cv_folds = cv_folds,
+                       importance_fn) {
+  r_sqs <- c()
+  
+  for (cv in 1:cv_folds){
+    test_fold <- as.character(cross_vals[[cv]]) #SEQN for testing
+    train_fold <- as.character(intrsct[!intrsct %in% test_fold]) #SEQN for training
+    predct_tst <- my_predict[test_fold,]
+    predct_trn <- my_predict[train_fold,]
+    resp_trn <- my_resp[train_fold, ]
+    resp_tst <- my_resp[test_fold , ]
+    rf <- randomForest::randomForest(predct_trn, resp_trn)
+    print("made rf")
+    pred <- predict(rf, predct_tst)
+    my_lm <- lm(pred ~ resp_tst)
+    r_sqs <- c(r_sqs, summary(my_lm)$r.squared)
+    print(paste(r_sqs, collapse = ", "))
+  }
+  write.csv(rf$importance, file = importance_fn)
+  return(r_sqs)
 }
 
-write.csv(rf$importance, file = file.path(output_dir, "rf_importance_hyperDiet2015.csv"))
+regress1 <- rf_regress(cross_vals = cross_vals,
+                       cv_folds = 1,
+                       my_resp = hyper1_2015,
+                       my_predict = diet_2015,
+                       test_fold = test_fold,
+                       intrsct = my_intersect,
+                       importance_fn = file.path(output_dir, "rf_importance_hyperDiet2015.csv")
+                       )
 
+write.csv(rf$importance, file = impo)
 
 
 
