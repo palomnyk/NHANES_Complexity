@@ -25,6 +25,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
@@ -46,6 +47,9 @@ parser.add_argument("-e", "--pred_path", dest="pred_table",
 parser.add_argument("-m", "--metadata_cols",
                   action="store_false", dest="meta_col",
                   help="Metadata columns to analyse")
+parser.add_argument("-o", "--output_label", default="py_rf",
+				  dest="output_label",
+                  help="base label for output files (additional info will be added to it)")
 parser.add_argument("-d", "--homedir",
                   default=os.path.expanduser(os.path.join(".",)),
                   help="path to working dir", dest="homedir", metavar="homedir")
@@ -83,7 +87,8 @@ python lib/scripts/ml/random_forest.py \
 time python lib/scripts/ml/rand_for_reg-sing_col_resp-single_col_divide.py \
 	--response_fn output/tables/BP_2015_match_diet_SYST1_RF.csv \
 	--delimeter , \
-	--pred_path output/tables/demo_diet_2015_match_bp_SYST1_RF.csv
+	--pred_path output/tables/demo_diet_2015_match_bp_SYST1_RF.csv \
+	--output_label py_rfr_totpop_demo_diet
 """
 
 # --------------------------------------------------------------------------
@@ -103,7 +108,7 @@ assert os.path.exists(output_dir)
 print("Establishing other constants.")
 # --------------------------------------------------------------------------
 
-output_label = "py_rfr_totpop_demo_diet"
+output_label = options.output_label
 result_fpath = os.path.join(output_dir, "tables", f"{output_label}_data.csv")
 col_names = ["model", "response_var"]
 num_cv_folds = 5
@@ -120,7 +125,7 @@ response_df = pd.read_csv(os.path.join(home_dir, options.resp_fn), \
 print(response_df.columns)
 response_df = response_df.sort_values(by = id_var)
 pred_df = pd.read_csv(os.path.join(home_dir, options.pred_table), \
-		sep=",", header=0)
+		sep=",", header=0).fillna(0)
 print(pred_df)
 pred_df = pred_df.sort_values(by = id_var)
 id_list = pred_df.loc[:,id_var]
@@ -168,21 +173,17 @@ with open(result_fpath, "w+") as fl:
 				print(pred_train.shape)
 				resp_train = response_df.loc[ response_df[id_var].isin(train) , m_c]
 				resp_test = response_df.loc[ response_df[id_var].isin(test) , m_c]
-				if is_numeric_dtype(resp_train) == True:
-					print("going to RandomForestRegressor()")
-					clf = RandomForestRegressor(n_estimators=500)
-					clf.fit(pred_train, resp_train)
-					print(clf.feature_importances_[1:10])
-					print(clf.feature_names_in_[1:10])
-					print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
-					feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
-					resp_pred = clf.predict(pred_test)
-					my_score = r2_score(resp_test, resp_pred, sample_weight=None)
-# 				else:
-# 					clf = RandomForestClassifier()
-# 					clf.fit(pred_train, resp_train)
-# 					resp_pred = clf.predict(pred_test)
-# 					my_score = clf.score(pred_test, resp_test, sample_weight=None)
+				# if is_numeric_dtype(resp_train) == True:
+				print("going to RandomForestRegressor()")
+				clf = RandomForestRegressor(n_estimators=500)
+				clf.fit(pred_train, resp_train)
+				print(clf.feature_importances_[1:10])
+				print(clf.feature_names_in_[1:10])
+				print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
+				feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
+				resp_pred = clf.predict(pred_test)
+				# my_score = r2_score(resp_test, resp_pred, sample_weight=None)
+				my_score = clf.score(pred_test, resp_test, sample_weight=None)
 				my_accuracy.append(my_score)
 				# print(my_accuracy)
 			final_acc = ",".join(map(str, my_accuracy))
