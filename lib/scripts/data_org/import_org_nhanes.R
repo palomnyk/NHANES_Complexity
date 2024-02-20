@@ -144,17 +144,12 @@ write.csv(d1_diet_2015, file = file.path(output_dir, "d1_diet_2015.csv"),
 
 nhanesA::nhanesTables(data_group="EXAM", year=2015)
 BP_2015 <- nhanesA::nhanes("BPX_I")
-
-BP_2015_vars <- nhanesA::nhanesTableVars(data_group = "EXAM",
-                                           nh_table = "BPX_I",
-                                           namesonly = TRUE)
-BP_2015 <- nhanesA::nhanesTranslate(nh_table = "BPX_I",
-                                    BP_2015_vars, data = BP_2015)
-
-BP_2015 <- nhanes_names(BP_2015, "EXAM", "BPX_I")
-
+BP_2015 <- download_org_nhanes("EXAM","BPX_I")
+BP_2015$Systolic_Hypertension <- BP_2015$`Systolic:  Blood pressure (first reading) mm Hg` >= 130
+BP_2015$Diastolic_Hypertension <- BP_2015$`Diastolic:  Blood pressure (first reading) mm Hg` >= 80
 write.csv(BP_2015, file = file.path(output_dir, "BP_2015.csv"),
           row.names = FALSE)
+# resps: "Systolic:  Blood pressure (first reading) mm Hg", "Systolic_Hypertension", "Diastolic:  Blood pressure (first reading) mm Hg", "Diastolic_Hypertension"
 
 nhanesA::nhanesTables(data_group="LAB", year=2015)
 
@@ -256,7 +251,13 @@ PHTHTE_PAQ_demo_d1_diet_2015 <- PHTHTE_PAQ_demo_d1_diet_2015[, !sapply(PAQ_demo_
 write.csv(PHTHTE_PAQ_demo_d1_diet_2015, file = file.path(output_dir, "PHTHTE_PAQ_noRx_demo_d1_diet_2015_match_bp_SYST1_RF.csv"),
           row.names = FALSE)
 
-write.csv(raw_features_used, file = file.path(output_dir,"graphics", "13_Feb_2024", "raw_predictor_features.csv"))
+raw_features <- cbind(read.table(text = names(raw_features_used)), raw_features_used)
+names(raw_features) <- c("Table", "Feature")
+raw_features <- na.omit(raw_features)
+write.csv(raw_features,
+          file = file.path("output","graphics", "13_Feb_2024", "raw_predictor_features.csv"),
+          row.names = FALSE)
+
 #Short version for testing ML code for completion
 short_rsn <- my_intersect[1:200]
 sh_d1_diet_2015 <- d1_diet_2015[d1_diet_2015$`Respondent sequence number.`  %in% short_rsn,]
@@ -269,7 +270,6 @@ write.csv(sh_demo_2015, file = file.path(output_dir, "short_demo_2015_match_bp_S
           row.names = FALSE)
 write.csv(sh_BP_2015, file = file.path(output_dir, "short_BP_2015_match_diet_SYST1_RF.csv"),
           row.names = FALSE)
-
 
 #### Create "foods only" dataset ####
 # d1_diet_2015 <- nhanesA::nhanes("DR1IFF_I")
