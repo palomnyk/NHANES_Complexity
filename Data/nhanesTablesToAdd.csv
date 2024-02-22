@@ -1,0 +1,138 @@
+data_group,nh_table,description,year
+DEMO,DEMO_I,Demographics,2015
+#LAB,HDL_I,HDL,2015
+LAB,AMDGYD_I,Acrylamide & Glycidamide,2015
+LAB,ALB_CR_I,Albumin & Creatinine - Urine,2015
+LAB,UTAS_I,Arsenic - Total - Urine,2015
+#LAB,TRIGLY_I,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,2015
+LAB,SSGLYP_I,Glyphosate (GLYP) - Urine (Surplus),2015
+LAB,OPD_I ,Organophosphate Insecticides - Dialkyl Phosphate Metabolites - Urine,2015
+LAB,UADM_I,Aromatic Diamines - Urine,2015
+LAB,UTASS_I,Arsenic - Total - Urine - Special Sample,2015
+LAB,BFRPOL_I,Brominated Flame Retardants (BFRs) - Pooled Samples,2015
+LAB,SSCT_I,Chlamydia Pgp3 (plasmid gene product 3) ELISA (enzyme linked immunosorbent assay) and multiplex bead array (MBA) results,2015
+LAB,SSCLTY_I,Chlorinated Tyrosine – Serum (Surplus),2015
+#LAB,HDL_I,Cholesterol - High-Density Lipoprotein (HDL),2015
+#LAB,TRIGLY_I,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,2015
+#LAB,TCHOL_I,Cholesterol - Total,2015
+LAB,CRCO_I,Chromium & Cobalt,2015
+#LAB,CBC_I,Complete Blood Count with 5-Part Differential - Whole Blood,2015
+LAB,CUSEZN_I,"Copper, Selenium & Zinc - Serum",2015
+LAB,COT_I,Cotinine and Hydroxycotinine - Serum,2015
+LAB,UCOT_I,"Cotinine, Hydroxycotinine, & Other Nicotine Metabolites and Analogs - Urine",2015
+LAB,UCOTS_I,"Cotinine, Hydroxycotinine, & Other Nicotine Metabolites and Analogs - Urine - Special Sample",2015
+LAB,DEET_I,DEET Metabolite - Urine,2015
+LAB,SSDEET_I,DEET Metabolites - Urine - Surplus,2015
+LAB,ETHOX_I,Ethylene Oxide,2015
+LAB,FASTQX_I,Fasting Questionnaire,2015
+LAB,FERTIN_I,Ferritin,2015
+LAB,SSFR_I,Flame Retardants - Urine (Surplus),2015
+LAB,FLDEP_I,Fluoride - Plasma,2015
+LAB,UFLDE_I,Fluoride - Urine,2015
+LAB,FLDEW_I,Fluoride - Water,2015
+LAB,FOLATE_I,Folate - RBC,2015
+LAB,FOLFMS_I,Folate Forms - Total & Individual - Serum,2015
+LAB,FORMAL_I,Formaldehyde,2015
+LAB,GHB_I,Glycohemoglobin,2015
+LAB,SSGLYP_I,Glyphosate (GLYP) - Urine (Surplus),2015
+LAB,HEPA_I,Hepatitis A,2015
+LAB,HEPBD_I,"Hepatitis B: Core antibody, Surface antigen, and Hepatitis D antibody",2015
+LAB,HEPB_S_I,Hepatitis B: Surface Antibody,2015
+LAB,HEPC_I,Hepatitis C: RNA (HCV-RNA) and Hepatitis C Genotype,2015
+LAB,HEPE_I,Hepatitis E: IgG & IgM Antibodies,2015
+LAB,HSV_I,Herpes Simplex Virus Type-1 & Type-2,2015
+LAB,HSCRP_I,High-Sensitivity C-Reactive Protein (hs-CRP),2015
+LAB,HIV_I,HIV Antibody Test,2015
+LAB,ORHPV_I,Human Papillomavirus (HPV) - Oral Rinse,2015
+LAB,HPVP_I,Human Papillomavirus (HPV) DNA - Penile Swabs: Roche Linear Array,2015
+LAB,HPVSWC_I,Human Papillomavirus (HPV) DNA - Vaginal Swab: Roche Cobas High-Risk,2015
+LAB,HPVSWR_I,Human Papillomavirus (HPV) DNA - Vaginal Swab: Roche Linear Array,2015
+LAB,INS_I,Insulin,2015
+LAB,UIO_I,Iodine - Urine,2015
+LAB,SSKL_I,Klotho - Serum (Surplus),2015
+LAB,PBCD_I,"Lead, Cadmium, Total Mercury, Selenium & Manganese - Blood",2015
+LAB,UHG_I,Mercury: Inorganic - Urine,2015
+LAB,IHGEM_I,"Mercury: Inorganic, Ethyl and Methyl - Blood",2015
+LAB,UM_I,Metals - Urine,2015
+LAB,UMS_I,Metals - Urine - Special Sample,2015
+LAB,SSMHHT_I,"Mono-2-ethyl-5-hydroxyhexyl terephthalate, mono-2-ethyl-5-carboxypentyl terephthalate, and monooxoisononyl phthalate - Urine (Surplus)",2015
+LAB,SSNEON_I,Neonicotinoids - Urine - Surplus,2015
+LAB,PCBPOL_I,Non-dioxin-like Polychlorinated Biphenyls & Mono-ortho-substituted Polychlorinated Biphenyls - Pooled Samples,2015
+LAB,OGTT_I,Oral Glucose Tolerance Test,2015
+LAB,OPD_I,Organophosphate Insecticides - Dialkyl Phosphate Metabolites - Urine,2015
+LAB,PERNT_I,"Perchlorate, Nitrate & Thiocyanate - Urine",2015
+LAB,PERNTS_I,"Perchlorate, Nitrate & Thiocyanate - Urine - Special Sample",2015
+LAB,PFAS_I,Perfluoroalkyl and Polyfluoroalkyl,2015
+LAB,EPHPP_I,Personal Care and Consumer Product Chemicals and Metabolites,2015
+LAB,SSPT_I,Pertussis and tetanus – Serum (Surplus),2015
+LAB,PSTPOL_I,Pesticides - Organochlorine Pesticides - Pooled Samples,2015
+LAB,PHTHTE_I,Phthalates and Plasticizers Metabolites - Urine,2015
+LAB,GLU_I,Plasma Fasting Glucose,2015
+LAB,PAH_I,Polycyclic Aromatic Hydrocarbons (PAH) - Urine,2015
+LAB,PAHS_I,Polycyclic Aromatic Hydrocarbons (PAH) - Urine - Special Sample,2015
+LAB,POOLTF_I,Pooled-Sample Technical Support File,2015
+LAB,UCPREG_I,Pregnancy Test - Urine,2015
+LAB,UPHOPM_I,"Pyrethroids, Herbicides, & Organophosphorus Metabolites",2015
+LAB,TST_I,Sex Steroid Hormone - Serum,2015
+LAB,UAS_I,Speciated Arsenics - Urine,2015
+LAB,UASS_I,Speciated Arsenics - Urine - Special Sample,2015
+LAB,BIOPRO_I,Standard Biochemistry Profile,2015
+LAB,TFR_I,Transferrin Receptor,2015
+LAB,TRICH_I,Trichomonas - Urine,2015
+LAB,UCFLOW_I,Urine Flow Rate,2015
+LAB,VID_I,Vitamin D,2015
+LAB,UVOC_I,Volatile Organic Compound (VOC) Metabolites - Urine,2015
+LAB,UVOCS_I,Volatile Organic Compound (VOC) Metabolites - Urine - Special Sample,2015
+LAB,VOCWB_I,Volatile Organic Compounds and Trihalomethanes/MTBE - Blood,2015
+LAB,VOCWBS_I,Volatile Organic Compounds and Trihalomethanes/MTBE – Blood – Special Sample,2015
+EXAM,AUX_I,Audiometry,2015
+EXAM,AUXAR_I,Audiometry - Acoustic Reflex,2015
+EXAM,AUXTYM_I,Audiometry - Tympanometry,2015
+EXAM,AUXWBR_I,Audiometry – Wideband Reflectance,2015
+#EXAM,BPX_I,Blood Pressure,2015
+EXAM,BMX_I,Body Measures,2015
+EXAM,DXXAG_I,Dual-Energy X-ray Absorptiometry - Android/Gynoid Measurements,2015
+EXAM,DXX_I,Dual-Energy X-ray Absorptiometry - Whole Body,2015
+EXAM,FLXCLN_I,Fluorosis - Clinical,2015
+EXAM,OHXDEN_I,Oral Health - Dentition,2015
+EXAM,OHXREF_I,Oral Health - Recommendation of Care,2015
+Q,ACQ_I,Acculturation,2015
+Q,ALQ_I,Alcohol Use,2015
+Q,AUQ_I,Audiometry,2015
+#Q,BPQ_I,Blood Pressure & Cholesterol,2015#Need to use BPQ050A for predicting BP
+#Q,CDQ_I,Cardiovascular Health,2015
+Q,CBQ_I,Consumer Behavior,2015
+#Q,HSQ_I,Current Health Status,2015
+Q,DEQ_I,Dermatology,2015
+Q,DIQ_I,Diabetes,2015
+Q,DBQ_I,Diet Behavior & Nutrition,2015
+Q,DLQ_I,Disability,2015
+Q,DUQ_I,Drug Use,2015
+Q,ECQ_I,Early Childhood,2015
+Q,FSQ_I,Food Security,2015
+Q,HIQ_I,Health Insurance,2015
+Q,HEQ_I,Hepatitis,2015
+Q,HUQ_I,Hospital Utilization & Access to Care,2015
+Q,HOQ_I,Housing Characteristics,2015
+Q,IMQ_I,Immunization,2015
+Q,INQ_I,Income,2015
+Q,KIQ_U_I,Kidney Conditions - Urology,2015
+#Q,MCQ_I,Medical Conditions,2015#Can add if removing questions about cardio health
+Q,DPQ_I,Mental Health - Depression Screener,2015
+Q,OCQ_I,Occupation,2015
+Q,OHQ_I,Oral Health,2015
+Q,PUQMEC_I,Pesticide Use,2015
+Q,PAQ_I,Physical Activity,2015
+Q,PFQ_I,Physical Functioning,2015
+#Q,RXQ_RX_I,Prescription Medications,2015
+#Q,RXQASA_I,Preventive Aspirin Use,2015
+Q,RHQ_I,Reproductive Health,2015
+Q,SXQ_I,Sexual Behavior,2015
+Q,SLQ_I,Sleep Disorders,2015
+Q,SMQ_I,Smoking - Cigarette Use,2015
+Q,SMQFAM_I,Smoking - Household Smokers,2015
+Q,SMQRTU_I,Smoking - Recent Tobacco Use,2015
+Q,SMQSHS_I,Smoking - Secondhand Smoke Exposure,2015
+Q,VTQ_I,Volatile Toxicant,2015
+Q,WHQ_I,Weight History,2015
+Q,WHQMEC_I,Weight History - Youth,2015

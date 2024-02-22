@@ -1,0 +1,4 @@
+data_group,nh_table,description,year
+DEMO,DEMO_I,Demographics,2015
+#LAB,HDL_I,HDL,2015
+LAB,AMDGYD_I,Acrylamide & Glycidamide,2015

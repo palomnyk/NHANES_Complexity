@@ -1,5 +1,6 @@
 # Author: Aaron Yerke (aaronyerke@gmail.com)
 # Script for importing and organizing data
+# https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html
 
 rm(list = ls()) #clear workspace
 
@@ -18,7 +19,8 @@ nhanes_names <- function(dl_df, dt_group, nh_tble) {
   #puts human readable names on the NHANES tables
   diet_names <- nhanesA::nhanesTableVars(data_group = dt_group,
                                          nh_table = nh_tble,
-                                         namesonly = FALSE)
+                                         namesonly = FALSE,
+                                         nchar = 160)
 
   my_ord <- match(names(dl_df), diet_names$Variable.Name)
   names(dl_df) <- diet_names$Variable.Description[my_ord]
@@ -33,7 +35,7 @@ download_org_nhanes <- function(dt_group, nh_tble) {
   
   dl_tble_vars <- nhanesA::nhanesTableVars(data_group=dt_group, 
                                              nh_table = nh_tble, 
-                                             namesonly = TRUE)
+                                             namesonly = FALSE)
   
   dl_tble <- nhanesA::nhanesTranslate(nh_tble, dl_tble_vars, data = dl_tble)
   
@@ -65,50 +67,77 @@ save_features <- function(vect = raw_features_used, vec_names = "name", feature_
 }
   
 #### Establish directory layout and other constants ####
-output_dir <- file.path("output", "tables")
-
-drop_criteria <- c("Dietary recall status" = c("Reported consuming breast-milk"),#DEMO_I
-                   ""
-)
-
-# tables to add:
-#   Physical Activity PAQ_I
-#   Oral Health	OHQ_I
-#   Occupation	OCQ_I
-#   Medical Conditions	MCQ_I
-#   Prescription Medications	RXQ_RX_I
-#   Preventive Aspirin Use	RXQASA_I
-
-#   Volatile Toxicant	VTQ_I VTQ_I
-
-# LAB:
-#   HDL_I
-#   Acrylamide & Glycidamide	AMDGYD_I
-#   Arsenic - Total - Urine	UTAS_I
-#   Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides	TRIGLY_I
-  # Glyphosate (GLYP) - Urine (Surplus)	SSGLYP_I
-#   Organophosphate Insecticides - Dialkyl Phosphate Metabolites - Urine	OPD_I   
-  
-
-
-
-# Add later:
-#   Reproductive Health	RHQ_I Doc	RHQ_I Data [XPT - 1.2 MB]	February 2018
-#   Sexual Behavior	SXQ_I Doc	SXQ_I Data [XPT - 1.9 MB]	December 2017
-#   Sleep Disorders	SLQ_I Doc	SLQ_I Data [XPT - 360.2 KB]	March 2018
-#   Smoking - Cigarette Use	SMQ_I Doc	SMQ_I Data [XPT - 2.6 MB]	September 2017
-#   Smoking - Household Smokers	SMQFAM_I Doc	SMQFAM_I Data [XPT - 312.9 KB]	September 2017
-#   Smoking - Recent Tobacco Use	SMQRTU_I Doc	SMQRTU_I Data [XPT - 1.5 MB]	September 2017
-#   Smoking - Secondhand Smoke Exposure	SMQSHS_I Doc	SMQSHS_I Data [XPT - 1.1 MB]	September 2017
+output_dir <- file.path("Data", "nhanesA_tables")
+dir.create(output_dir)
+# drop_criteria <- c("Dietary recall status" = c("Reported consuming breast-milk"),#DEMO_I
+#                    ""
+# )
 
 #### Loading in data ####
 food_codes <- readxl::read_excel(file.path("Data", "WWEIA1516_foodcat_FNDDS.xlsx"), 
                                  trim_ws = T, na = c("", "NA"))
 
-raw_features_used <- c()
+import_tables <- read.csv(file.path("Data", "nhanesTablesToAdd_short.csv"),
+                           header = T, sep = ",", comment.char = "#")
+short_col_name <- c()
+long_col_name <- c()
+dt_grp_name <- c()
+nh_table_name <- c()
+year <- c()
+full_df <- data.frame()
+not_added <- c()
 
-# Download raw NHANES data files ## 
-# https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html
+for (i in 1:nrow(import_tables)){
+  yr <- import_tables$year[i]
+  dt_grp <- import_tables$data_group[i]
+  nh_tbl <- import_tables$nh_table[i]
+  fname <- paste0(nh_tbl,"_", yr, ".csv")
+  print(fname)
+  fname_path <- file.path(output_dir, fname)
+  if (!file.exists(fname_path)){
+    print(paste(fname_path, "not found - Downloading!"))
+    dl_tble <- nhanesA::nhanes(nh_tbl)
+    write.csv(dl_tble, fname_path, row.names = FALSE)
+    Sys.sleep(2)
+  }else{
+    dl_tble <- read.csv(fname_path, header = TRUE, check.names = FALSE)
+  }
+  dl_tble <- dl_tble[,sapply(dl_tble, function(x) !all(is.na(x)))]
+  short_col_name <- c(short_col_name, names(dl_tble))
+  num_col <- ncol(dl_tble)
+  dt_grp_name <- c(dt_grp_name, rep(dt_grp, num_col))
+  nh_table_name <- c(nh_table_name, rep(nh_tbl, num_col))
+  year <- c(year, rep(yr, num_col))
+  
+  my_vars <- nhanesA::nhanesTableVars(data_group=dt_grp, 
+                                      nh_table = nh_tbl, 
+                                      namesonly = TRUE,
+                                      nchar = 160)
+  
+  dl_tble <- nhanes_names(dl_tble, dt_grp, nh_tbl)
+  
+  attr(dl_tble, "names") <- sub("[[:punct:]]$", "", names(dl_tble)) 
+  long_col_name <- c(long_col_name, names(dl_tble))
+  fname <- paste0(nh_tbl,"_", yr, "_lg.csv")
+  fname_path <- file.path(output_dir, fname)
+  if (!file.exists(fname_path)){#save with long name
+    write.csv(dl_tble, fname_path, row.names = FALSE)
+  }
+  if(length(unique(dl_tble$`Respondent sequence number`)) == nrow(dl_tble)){
+    if (nrow(full_df) < 1){
+      full_df <- dl_tble
+    }else{
+      print(paste(nrow(full_df), nrow(dl_tble)))
+      full_df <- merge(full_df, dl_tble, by = "Respondent sequence number",
+                       all = TRUE)
+    }
+  }else{
+    print(paste("Didn't add", nh_tbl))
+    not_added <- c(not_added, nh_tbl)
+  }
+}
+
+
 nhanesA::nhanesTables(data_group="DEMO", year=2015)
 demo_2015 <- download_org_nhanes("DEMO", "DEMO_I")
 raw_features_used <- save_features(raw_features_used, "DEMO_I", colnames(demo_2015))
