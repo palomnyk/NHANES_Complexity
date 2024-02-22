@@ -6,7 +6,7 @@ LAB,ALB_CR_I,Albumin & Creatinine - Urine,2015
 LAB,UTAS_I,Arsenic - Total - Urine,2015
 #LAB,TRIGLY_I,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,2015
 LAB,SSGLYP_I,Glyphosate (GLYP) - Urine (Surplus),2015
-LAB,OPD_I ,Organophosphate Insecticides - Dialkyl Phosphate Metabolites - Urine,2015
+LAB,OPD_I,Organophosphate Insecticides - Dialkyl Phosphate Metabolites - Urine,2015
 LAB,UADM_I,Aromatic Diamines - Urine,2015
 LAB,UTASS_I,Arsenic - Total - Urine - Special Sample,2015
 LAB,BFRPOL_I,Brominated Flame Retardants (BFRs) - Pooled Samples,2015
@@ -99,7 +99,7 @@ EXAM,OHXREF_I,Oral Health - Recommendation of Care,2015
 Q,ACQ_I,Acculturation,2015
 Q,ALQ_I,Alcohol Use,2015
 Q,AUQ_I,Audiometry,2015
-#Q,BPQ_I,Blood Pressure & Cholesterol,2015#Need to use BPQ050A for predicting BP
+#Q#NeedtouseBPQ050AforpredictingBP,BPQ_I,Blood Pressure & Cholesterol,2015
 #Q,CDQ_I,Cardiovascular Health,2015
 Q,CBQ_I,Consumer Behavior,2015
 #Q,HSQ_I,Current Health Status,2015
@@ -117,7 +117,7 @@ Q,HOQ_I,Housing Characteristics,2015
 Q,IMQ_I,Immunization,2015
 Q,INQ_I,Income,2015
 Q,KIQ_U_I,Kidney Conditions - Urology,2015
-#Q,MCQ_I,Medical Conditions,2015#Can add if removing questions about cardio health
+#Q#Canaddifremovingquestionsaboutcardiohealth,MCQ_I,Medical Conditions,2015
 Q,DPQ_I,Mental Health - Depression Screener,2015
 Q,OCQ_I,Occupation,2015
 Q,OHQ_I,Oral Health,2015
