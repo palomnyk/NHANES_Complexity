@@ -15,7 +15,11 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from pandas.api.types import is_string_dtype
+from pandas.api.types import is_bool_dtype
+from pandas.api.types import is_categorical_dtype
 from sklearn.metrics import accuracy_score, roc_auc_score, r2_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
@@ -91,7 +95,8 @@ time python lib/scripts/ml/rand_for_reg-sing_col_resp-single_col_divide.py \
 	--response_fn output/tables/BP_2015_match_diet_SYST1_RF.csv \
 	--delimeter , \
 	--pred_path output/tables/demo_d1_diet_2015_match_bp_SYST1_RF.csv \
-	--output_label py_rfr_totpop_demo_diet_cat
+	--output_label py_rfr_totpop_demo_diet_cat \
+	--title "2015_demo+diet"
 
 time python lib/scripts/ml/rand_for_reg-sing_col_resp-single_col_divide.py \
 	--response_fn output/tables/noRx_BP_2015_match_diet_SYST1_RF.csv \
@@ -133,14 +138,16 @@ print("Establishing other constants.")
 output_label = options.output_label
 result_fpath = os.path.join(output_dir, "tables", f"{output_label}_data.csv")
 col_names = ["model", "response_var"]
-num_cv_folds = 2
-n_trees = 500
-bar_shown = 20
+num_cv_folds = 10
+n_trees = 1000
+bar_shown = 18
 col_names = col_names + [f"split{x}" for x in range(num_cv_folds)]
-pdf_fpath = os.path.join(output_dir, "graphics", f"bp_{output_label}_.pdf")
+pdf_fpath = os.path.join(output_dir, "graphics", f"bp_{output_label}_feature_importance.pdf")
 sum_pdf_fpath = os.path.join(output_dir, "graphics", f"sum_{output_label}_.pdf")
 algo_table_fpath = os.path.join(output_dir, "tables", f"algo_{output_label}_.csv")
 id_var = "Respondent sequence number."
+if options.title == False:
+	options.title == options.output_label
 
 response_cols = ["Systolic:  Blood pressure (first reading) mm Hg", "Systolic_Hypertension", "Diastolic:  Blood pressure (first reading) mm Hg", "Diastolic_Hypertension"]#TODO: FIX THIS
 response_df = pd.read_csv(os.path.join(home_dir, options.resp_fn), \
@@ -155,6 +162,7 @@ id_list = pred_df.loc[:,id_var]
 print("PRED")
 print(len(list(response_df.index)))
 print(pred_df.loc[:,id_var])
+
 
 seed = 7
 
@@ -189,7 +197,7 @@ with open(result_fpath, "w+") as fl:
 			predictions = []
 			kfold = model_selection.KFold(n_splits=num_cv_folds, random_state=seed, shuffle=True)
 			feature_rows = []
-			for train, test in kfold.split(pred_df.loc[:,id_var]):
+			for train, test in kfold.split(response_df.loc[response_df[m_c].notna(), id_var]):
 				print(f"train: {len(train)}, test: {len(test)}")
 				train = [id_list[x] for x in train]
 				test = [id_list[x] for x in test]
@@ -198,13 +206,14 @@ with open(result_fpath, "w+") as fl:
 				print(pred_train.shape)
 				resp_train = response_df.loc[ response_df[id_var].isin(train) , m_c]
 				resp_test = response_df.loc[ response_df[id_var].isin(test) , m_c]
-				if is_numeric_dtype(resp_train) == True:
-					print("going to RandomForestRegressor()")
+				print(resp_train.dtype)
+				if resp_train.dtype != bool:
+					print(f"going to RandomForestRegressor(), {m_c}")
 					clf = RandomForestRegressor(n_estimators=n_trees)
-					resp_pred = clf.predict(pred_test)
 					clf.fit(pred_train, resp_train)
-					print(clf.feature_importances_[1:10])
-					print(clf.feature_names_in_[1:10])
+					resp_pred = clf.predict(pred_test)
+					# print(clf.feature_importances_[1:10])
+					# print(clf.feature_names_in_[1:10])
 					print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
 					feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
 					resp_pred = clf.predict(pred_test)
@@ -231,8 +240,8 @@ with open(result_fpath, "w+") as fl:
 					print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
 					feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
 					resp_pred = clf.predict(pred_test)
-					predictions.append(clf.predict(pred_test))
-					responses.append(pred_test)
+					predictions.extend(clf.predict(pred_test))
+					responses.extend(resp_test)
 					# my_score = r2_score(resp_test, resp_pred, sample_weight=None)
 					my_score = clf.score(pred_test, resp_test, sample_weight=None)
 					my_accuracy.append(my_score)
@@ -247,13 +256,32 @@ with open(result_fpath, "w+") as fl:
 			feature_df.to_csv(os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv"))
 			feature_mean = feature_df.mean(axis=0)
 			feature_mean.to_csv(os.path.join(output_dir, "tables", f"ave_feat_imp_{output_label}.csv"))
-			plt.barh(feature_mean.index[0:bar_shown], feature_mean[0:bar_shown])
-			plt.xlabel(f"Top {bar_shown} Relative Importances")
-			plt.xticks(rotation="vertical")
-			plt.title(f"Mean R-squared: {round(np.mean(my_accuracy), 3)}")
-			plt.suptitle(f"{options.title}, {meta_c}")
-			plt.savefig(os.path.join(output_dir, "graphics", f"{output_label}feat_imp.png"),
-			   bbox_inches='tight')
+			if resp_train.dtype == bool:
+				plt.barh(feature_mean.index[0:bar_shown], feature_mean[0:bar_shown])
+				plt.xlabel(f"Top {bar_shown} Relative Importances")
+				plt.xticks(rotation="vertical")
+				plt.title(f"Mean accuracy: {round(np.mean(my_accuracy), 3)}")
+				plt.suptitle(f"{options.title}, {meta_c}")
+				pdf.savefig(bbox_inches='tight')
+				plt.clf()
+				print("making confusion matrix")
+				# my_score = clf.score(predictions, responses, sample_weight=None)
+				cnf_matrix = confusion_matrix(responses, predictions)
+				disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix,
+								  display_labels=clf.classes_).plot()
+				plt.title(f"{options.title}, {meta_c}")
+				pdf.savefig(bbox_inches='tight')
+				plt.clf()
+
+			else:
+				print("else")
+				plt.barh(feature_mean.index[0:bar_shown], feature_mean[0:bar_shown])
+				plt.xlabel(f"Top {bar_shown} Relative Importances")
+				plt.xticks(rotation="vertical")
+				plt.title(f"Mean R-squared: {round(np.mean(my_accuracy), 3)}")
+				plt.suptitle(f"{options.title}, {meta_c}")
+				pdf.savefig(bbox_inches='tight')
+				plt.clf()
 
 print("Saving pdf", flush = True)
 pdf.close()
