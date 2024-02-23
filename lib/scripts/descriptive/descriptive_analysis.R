@@ -26,13 +26,13 @@ option_list <- list(
 ); 
 
 '
-Rscript /lib/scripts/descriptive/data_descriptives.R \
+Rscript ./lib/scripts/descriptive/descriptives_analysis.R \
   --data PHTHTE_PAQ_noRx_demo_d1_diet_2015_match_bp_SYST1_RF.csv \
   --colnames "Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.," \
   --delim "," \
   --output_fname ageLowSparcity
   
-Rscript ./lib/scripts/descriptive/data_descriptives.R \
+Rscript ./lib/scripts/descriptive/descriptive_analysis.R \
   --data PHTHTE_PAQ_noRx_BP_2015_match_diet_SYST1_RF.csv \
   --colnames "Systolic_Hypertension,Diastolic_Hypertension,Diastolic:  Blood pressure (first reading) mm Hg,Systolic:  Blood pressure (first reading) mm Hg" \
   --delim "," \
@@ -69,15 +69,15 @@ out_name <- paste0(output_label, ".pdf")
 pdf(file = file.path(output_dir, "graphics", out_name))
 for (feat in desc_columns){
   counts <- my_table[,feat]
-  supstring <- paste("num participants:", length(!is.na(counts)))
+  supstring <- paste("n observation:", length(!is.na(counts)))
+  # print(supstring)
   if (is.numeric(counts)){
-    hist(counts, main = substr(feat, 1, 65), xlab = "", breaks=100,
-         supstring = supstring)
+    hist(counts, main = substr(feat, 1, 65), xlab = supstring, breaks=100)
   }
   else{
     par(mar=c(20,4,4,4))
     barplot(table(counts), main = substr(feat, 1, 65), las = 3,
-            supstring = supstring)
+            xlab = supstring)
     # my_string <- paste(my_string,"\n",str(table(counts)))
     # cat(str(data.frame(table(counts))), file = cat_out_name, append = T)
   }
