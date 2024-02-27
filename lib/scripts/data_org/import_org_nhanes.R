@@ -77,8 +77,9 @@ dir.create(output_dir)
 food_codes <- readxl::read_excel(file.path("Data", "WWEIA1516_foodcat_FNDDS.xlsx"), 
                                  trim_ws = T, na = c("", "NA"))
 
-import_tables <- read.csv(file.path("Data", "nhanesTablesToAdd_short.csv"),
+import_tables <- read.csv(file.path("Data", "nhanesTablesToAdd.csv"),
                            header = T, sep = ",", comment.char = "#")
+
 short_col_name <- c()
 long_col_name <- c()
 dt_grp_name <- c()
@@ -109,10 +110,10 @@ for (i in 1:nrow(import_tables)){
   nh_table_name <- c(nh_table_name, rep(nh_tbl, num_col))
   year <- c(year, rep(yr, num_col))
   
-  my_vars <- nhanesA::nhanesTableVars(data_group=dt_grp, 
-                                      nh_table = nh_tbl, 
-                                      namesonly = TRUE,
-                                      nchar = 160)
+  dl_tble <- nhanesA::nhanesTranslate(nh_table = nh_tbl,
+                           data = dl_tble,
+                           details = TRUE,
+                           colnames = names(dl_tble))
   
   dl_tble <- nhanes_names(dl_tble, dt_grp, nh_tbl)
   
@@ -137,39 +138,75 @@ for (i in 1:nrow(import_tables)){
   }
 }
 
+print(paste("Any NA in respondent ID:", any(is.na(full_df$`Respondent sequence number`))))
+stopifnot(any(is.na(full_df$`Respondent sequence number`)))
+print(paste("Respondent IDs are unique:",
+            length(unique(full_df$`Respondent sequence number`) == nrow(full_df))))
+stopifnot(length(unique(full_df$`Respondent sequence number`) == nrow(full_df)))
 
-nhanesA::nhanesTables(data_group="DEMO", year=2015)
-demo_2015 <- download_org_nhanes("DEMO", "DEMO_I")
-raw_features_used <- save_features(raw_features_used, "DEMO_I", colnames(demo_2015))
-demo_2015 <- convert_dummy(demo_2015)
-write.csv(demo_2015, file = file.path(output_dir, "demo_2015.csv"),
-          row.names = FALSE)
-
-PAQ_2015 <- download_org_nhanes("Q", "PAQ_I")
-raw_features_used <- save_features(raw_features_used, "PAQ_I", colnames(PAQ_2015))
-PAQ_2015 <- convert_dummy(PAQ_2015)
-
-RXQ_2015 <- download_org_nhanes("Q", "RXQ_RX_I")
-
-my_RXQ <- RXQ_2015[,1:2]
-
-my_RXQ <- my_RXQ[!duplicated(my_RXQ), ]
-
-no_RX <- my_RXQ[my_RXQ$`In the past 30 days, have you used or taken medication for which a prescription is needed?  Do not include prescription vitamins` == "No", "Respondent sequence number."]
+# RXQ_2015 <- download_org_nhanes("Q", "RXQ_RX_I")
+# test <- grepl("hypertension", RXQ_2015$`ICD-10-CM code 1 description.`, ignore.case = TRUE)
 
 nhanesA::nhanesTables(data_group="DIET", year=2015)
 
-d1_24supp_2015 <- download_org_nhanes("DIET", "DS1IDS_I")
-
-d1_diet_2015 <- download_org_nhanes("DIET", "DR1IFF_I")
-
-d1_diet_2015 <- d1_diet_2015[, !sapply(d1_diet_2015, is.factor)]
-raw_features_used <- save_features(raw_features_used, "DR1IFF_I", colnames(d1_diet_2015))
+# d1_24supp_2015 <- download_org_nhanes("DIET", "DS1IDS_I")
+# d1_diet_2015 <- download_org_nhanes("DIET", "DR1IFF_I")
+d1_diet_2015 <- nhanesA::nhanes("DR1IFF_I")
+d1_diet_2015 <- nhanesA::nhanesTranslate(nh_table = "DR1IFF_I",
+                                  data = d1_diet_2015,
+                                  details = TRUE,
+                                  colnames = names(d1_diet_2015))
+d1_diet_2015 <- nhanes_names(d1_diet_2015,"DIET", "DR1IFF_I")
+attr(d1_diet_2015, "names") <- sub("[[:punct:]]$", "", names(d1_diet_2015))
+# d1_diet_2015 <- d1_diet_2015[, !sapply(d1_diet_2015, is.factor)]
 d1_diet_2015$`USDA food code` <- food_codes$category_description[match(d1_diet_2015$`USDA food code`, food_codes$food_code)]
 
+USDA_food_cat_only <- subset(d1_diet_2015, select = c("USDA food code", "Respondent sequence number"))
+  
+USDA_food_cat_only <- fastDummies::dummy_cols(USDA_food_cat_only,
+                                              select_columns = c("USDA food code"),
+                                              ignore_na = TRUE, remove_selected_columns = TRUE)
+
+USDA_food_cat_only <- rowsum(USDA_food_cat_only,
+       group = USDA_food_cat_only$`Respondent sequence number`,na.rm=T, )
+USDA_food_cat_only$`Respondent sequence number` <- row.names(USDA_food_cat_only)
+
 dir.create(file.path(output_dir), showWarnings = FALSE)
-write.csv(d1_diet_2015, file = file.path(output_dir, "d1_diet_2015.csv"),
+write.csv(USDA_food_cat_only, file = file.path(output_dir, "USDA_food_cat_only_2015.csv"),
           row.names = FALSE)
+
+BPQ_I_2015 <- nhanesA::nhanes("BPQ_I")
+BPQ_I_2015 <- nhanesA::nhanesTranslate(nh_table = "BPQ_I",
+                                         data = BPQ_I_2015,
+                                         details = TRUE,
+                                         colnames = names(BPQ_I_2015))
+BPQ_I_2015 <- nhanes_names(BPQ_I_2015,"Q", "BPQ_I")
+attr(BPQ_I_2015, "names") <- sub("[[:punct:]]$", "", names(BPQ_I_2015))
+
+no_RX <- BPQ_I_2015[BPQ_I_2015$`Because of {your/SP's} (high blood pressure/hypertension), {have you/has s/he} ever been told to . . . take prescribed medicine` == "Yes", "Respondent sequence number"]
+
+USDA_food_cat_only <- USDA_food_cat_only[USDA_food_cat_only$`Respondent sequence number` %in% no_RX,]
+
+write.csv(USDA_food_cat_only, file = file.path(output_dir, "USDA_food_cat_only_2015_noRx.csv"),
+          row.names = FALSE)
+
+
+
+
+
+
+BPQ_I_2015 <- fastDummies::dummy_cols(BPQ_I_2015,
+                                        select_columns = c("USDA food code"),
+                                        ignore_na = TRUE, remove_selected_columns = TRUE)
+d1_diet_2015 <- subset(d1_diet_2015, select = -c(2:8)) #Row sums on these doesn't make sense
+d1_diet_2015 <- rowsum(d1_diet_2015[,3:ncol(d1_diet_2015)],
+               group = d1_diet_2015$`Respondent sequence number.`,na.rm=T, )
+# d1_diet_2015 <- rowsum(d1_diet_2015[,3:ncol(d1_diet_2015)],
+#                     group = d1_diet_2015$`Respondent sequence number.`,na.rm=T, )
+
+#rowsum removes group column and we need it downstream, so put it back:
+d1_diet_2015$`Respondent sequence number.` <- row.names(d1_diet_2015)
+
 
 nhanesA::nhanesTables(data_group="EXAM", year=2015)
 BP_2015 <- nhanesA::nhanes("BPX_I")
@@ -186,18 +223,6 @@ nhanesA::nhanesTables(data_group="LAB", year=2015)
 #reogranize with dummy variables to work with RF
 
 # d1_diet_2015[, !sapply(d1_diet_2015, is.factor)]
-
-d1_diet_2015 <- fastDummies::dummy_cols(d1_diet_2015,
-                                        select_columns = c("USDA food code"),
-                                        ignore_na = TRUE, remove_selected_columns = TRUE)
-d1_diet_2015 <- subset(d1_diet_2015, select = -c(2:8)) #Row sums on these doesn't make sense
-d1_diet_2015 <- rowsum(d1_diet_2015[,3:ncol(d1_diet_2015)],
-               group = d1_diet_2015$`Respondent sequence number.`,na.rm=T, )
-# d1_diet_2015 <- rowsum(d1_diet_2015[,3:ncol(d1_diet_2015)],
-#                     group = d1_diet_2015$`Respondent sequence number.`,na.rm=T, )
-
-#rowsum removes group column and we need it downstream, so put it back:
-d1_diet_2015$`Respondent sequence number.` <- row.names(d1_diet_2015)
 
 
 # Create datasets from interection of BP and Diet datasets
