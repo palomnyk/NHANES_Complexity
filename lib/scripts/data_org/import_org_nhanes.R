@@ -65,7 +65,59 @@ save_features <- function(vect = raw_features_used, vec_names = "name", feature_
   names(feature_vect) <- rep(vec_names, length(feature_vect))
   return(c(raw_features_used, feature_vect))
 }
-  
+tst_df <- data.frame(idvar = c("a", "a", "b", "b", "b", "c"),
+                     item =  c("A", "C", "A", "B", "B",  "C"),
+                     count = c(1,2, 1,1,2, 5))
+dummy_df <- data.frame(idvar = c("a", "b", "c"),
+                       item_A = c(1, 1, 0),
+                       item_B = c(0, 3, 0),
+                       item_C = c(2, 0, 5))
+row.names(dummy_df) <- c("a", "b", "c")
+                     
+two_column_dummy <- function(df, id_colnm, item_colnm, count_colnm) {
+  # Function for using one column as the item (dummy car), and another as a count
+  # Arguments:
+  # dataframe (df) that has at least an id, item, and count column
+  # a string for the column name of ids (id_colnm), 
+  # a string for the column name of items (item_colnm), 
+  # and a string for the column name of counts (count_colnm)
+  print(paste(id_colnm, item_colnm, count_colnm))
+  uniq_items <- unique(df[,item_colnm])
+  uniq_items <- paste0(item_colnm, "_",uniq_items)
+  print(uniq_items)
+  id_var <- unique(df[,id_colnm])
+  new_df <- data.frame(matrix(0 ,nrow = length(id_var), ncol = length(uniq_items)))
+  names(new_df) <- uniq_items
+  row.names(new_df) <- id_var
+print(id_var)
+  for (id in 1:nrow(new_df)) {
+    my_id <- as.character(id_var[id])
+    print(my_id)
+    my_sub <- df[df[,id_colnm]==my_id,#subset of df argument
+                           c(item_colnm,count_colnm,
+                             id_colnm)]
+    for (rw in row.names(my_sub)){
+      # print(rw)
+      food <- my_sub[rw, item_colnm]
+      print(food)
+      my_cell <- new_df[my_id, paste0(item_colnm, "_", food)]
+      print(my_cell)
+      my_grams <- my_sub[rw, count_colnm]
+      print(my_grams)
+      new_df[my_id, paste0(item_colnm, "_", food)] <- my_cell + my_grams
+    }
+  }
+  new_df[,id_colnm] <- row.names(new_df)
+  new_df <- new_df[ , order(names(new_df))]
+  return(new_df)
+}
+unit_test1 <- two_column_dummy(df = tst_df,
+                 id_colnm = "idvar",
+                 item_colnm = "item",
+                 count_colnm = "count")
+identical(unit_test1, dummy_df)
+
+
 #### Establish directory layout and other constants ####
 output_dir <- file.path("Data", "nhanesA_tables")
 dir.create(output_dir)
@@ -150,6 +202,8 @@ stopifnot(length(unique(full_df$`Respondent sequence number`) == nrow(full_df)))
 nhanesA::nhanesTables(data_group="DIET", year=2015)
 
 # d1_24supp_2015 <- download_org_nhanes("DIET", "DS1IDS_I")
+
+#### Orgnaize diet data####
 # d1_diet_2015 <- download_org_nhanes("DIET", "DR1IFF_I")
 d1_diet_2015 <- nhanesA::nhanes("DR1IFF_I")
 d1_diet_2015 <- nhanesA::nhanesTranslate(nh_table = "DR1IFF_I",
@@ -160,6 +214,38 @@ d1_diet_2015 <- nhanes_names(d1_diet_2015,"DIET", "DR1IFF_I")
 attr(d1_diet_2015, "names") <- sub("[[:punct:]]$", "", names(d1_diet_2015))
 # d1_diet_2015 <- d1_diet_2015[, !sapply(d1_diet_2015, is.factor)]
 d1_diet_2015$`USDA food code` <- food_codes$category_description[match(d1_diet_2015$`USDA food code`, food_codes$food_code)]
+
+uniq_foods <- unique(d1_diet_2015$`USDA food code`)
+uniq_foods <- sapply(unique(d1_diet_2015$`USDA food code`), function(x){
+  paste0("USDA food code_",uniq_foods)
+})
+
+id_var <- unique(d1_diet_2015$`Respondent sequence number`)
+new_df <- data.frame(matrix(0 ,nrow = length(id_var), ncol = length(uniq_foods)))
+names(new_df) <- uniq_foods
+row.names(new_df) <- id_var
+
+for (id in 1:nrow(new_df)) {
+  my_id <- as.character(id_var[id])
+  print(my_id)
+  my_sub <- d1_diet_2015[d1_diet_2015$`Respondent sequence number`==my_id,
+                         c("USDA food code","Gram weight of the food/individual component",
+                           "Respondent sequence number")]
+  for (rw in row.names(my_sub)){
+    # print(rw)
+    food <- my_sub[rw, "USDA food code"]
+    print(food)
+    my_cell <- new_df[my_id, paste0("USDA food code_", food)]
+    print(my_cell)
+    my_grams <- my_sub[rw, "Gram weight of the food/individual component"]
+    print(my_grams)
+    new_df[my_id, paste0("USDA food code_", food)] <- my_cell + my_grams
+  
+  }
+}
+new_df$`Respondent sequence number` <- row.names(new_df)
+write.csv(new_df, file = file.path(output_dir, "USDA_food_cat_g_2015.csv"),
+          row.names = FALSE)
 
 USDA_food_cat_only <- subset(d1_diet_2015, select = c("USDA food code", "Respondent sequence number"))
   
@@ -189,9 +275,6 @@ USDA_food_cat_only <- USDA_food_cat_only[USDA_food_cat_only$`Respondent sequence
 
 write.csv(USDA_food_cat_only, file = file.path(output_dir, "USDA_food_cat_only_2015_noRx.csv"),
           row.names = FALSE)
-
-
-
 
 
 
