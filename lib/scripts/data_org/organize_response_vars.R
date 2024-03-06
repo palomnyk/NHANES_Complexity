@@ -31,50 +31,106 @@ opt <- optparse::parse_args(opt_parser);
 
 print(opt)
 
+nhanes_names <- function(dl_df, dt_group, nh_tble) {
+  #puts human readable names on the NHANES tables
+  diet_names <- nhanesA::nhanesTableVars(data_group = dt_group,
+                                         nh_table = nh_tble,
+                                         namesonly = FALSE,
+                                         nchar = 160)
+  
+  my_ord <- match(names(dl_df), diet_names$Variable.Name)
+  names(dl_df) <- diet_names$Variable.Description[my_ord]
+  return(dl_df)
+}
+
 # --------------------------------------------------------------------------
 print("Establishing directory layout and other constants.")
 # --------------------------------------------------------------------------
-home_dir <- opt$homedir
-project <- opt$project
-output_dir <- file.path(home_dir, 'output')
 #### Establish directory layout and other constants ####
-output_dir <- file.path("output")
-
-
-tables to download and organize for 2015 NHANES:
-  HDL_I
-  TRIGLY_I
-  TCHOL_I
-
+output_dir <- file.path("Data", "respns_vars")
+added_tables <- c()
+not_added <- c()
+full_df <- data.frame()
+id_name <- "Respondent sequence number"
 #### Loading in data ####
-my_table <- read.csv(file = file.path(output_dir,"tables", opt$data),
-                     header = T,
-                     check.names =F)
+import_tables <- my_table <- read.csv(file = file.path(output_dir, "response_features_tables.csv"),
+                                  header = T, comment.char = "#",
+                                  check.names =F)
 
-prefix_to_average <- c("Systolic:  Blood pressure", "Diastolic: Blood pressure")
+for (i in 1:nrow(import_tables)){
+  yr <- import_tables$year[i]
+  dt_grp <- import_tables$data_group[i]
+  nh_tbl <- import_tables$nh_table[i]
+  if (!nh_tbl %in% added_tables){
+    fname <- paste0(nh_tbl,"_", yr, ".csv")
+    print(fname)
+    fname_path <- file.path(output_dir, fname)
+    if (!file.exists(fname_path)){
+      print(paste(fname_path, "not found - Downloading!"))
+      dl_tble <- nhanesA::nhanes(nh_tbl)
+      write.csv(dl_tble, fname_path, row.names = FALSE)
+      Sys.sleep(2)
+    }else{
+      dl_tble <- read.csv(fname_path, header = TRUE, check.names = FALSE)
+    }
+    dl_tble <- dl_tble[,sapply(dl_tble, function(x) !all(is.na(x)))]
+    
+    print(paste(names(dl_tble), collapse = "-"))
+    save_cols <- c("SEQN", intersect(names(dl_tble),  toupper(import_tables$feature_short_name)))
+    dl_tble <- dl_tble[, save_cols]
+    dl_tble <- nhanesA::nhanesTranslate(nh_table = nh_tbl,
+                                        data = dl_tble,
+                                        details = TRUE,
+                                        colnames = names(dl_tble))
+    
+    dl_tble <- nhanes_names(dl_tble, dt_grp, nh_tbl)
+    
+    attr(dl_tble, "names") <- sub("[[:punct:]]$", "", names(dl_tble)) 
+    
+    if(length(unique(dl_tble[,id_name])) == nrow(dl_tble)){
+      if (nrow(full_df) < 1){
+        full_df <- dl_tble
+      }else{
+        print(paste(nrow(full_df), nrow(dl_tble)))
+        full_df <- merge(full_df, dl_tble, by = id_name,
+                         all = TRUE)
+      }
+      added_tables <- c(added_tables, nh_tbl)
+    }else{
+      print(paste("Didn't add", nh_tbl))
+      not_added <- c(not_added, nh_tbl)
+    }
+  }#1st if
+}
+
+#### Organize and categorize BP response vars###
+prefix_to_average <- c("Systolic", "Diastolic")
 threshold <- c(130, 80)
-new_df <- data.frame(matrix(nrow = nrow(my_table), ncol = 0))
 
 for (i in 1:length(prefix_to_average)){
   pre <- prefix_to_average[i]
   print(pre)
-  my_cols <- unlist(lapply(names(my_table), function(x){startsWith(x, pre)}))
+  my_cols <- unlist(lapply(names(full_df), function(x){startsWith(x, pre)}))
   print(my_cols)
-  my_cols <- names(my_table)[my_cols]
-  my_mean <- unlist(rowMeans(my_table[ , my_cols], na.rm=T))
-  new_df[,paste0(pre, "_mean")] <- my_mean
-  new_df[,paste0(pre, "_hypertension")] <- my_mean >= threshold[i]
+  my_cols <- names(full_df)[my_cols]
+  my_mean <- unlist(rowMeans(full_df[ , my_cols], na.rm=T))
+  full_df[,paste0(pre, "_mean")] <- my_mean
+  full_df[,paste0(pre, "_hypertension")] <- my_mean >= threshold[i]
+  full_df <- full_df[,!(names(full_df) %in% my_cols)]
 }
 
-any_hyper <- apply(array, margin, ...)
 
+full_df$hypertension_either <- ifelse(full_df$`Systolic_hypertension` == TRUE | full_df$`Diastolic_hypertension` == TRUE,
+                                      TRUE, FALSE)
+#### Hardcode other blood lab result classifications ####
+full_df$unhealthy_tot_chol <- full_df$`Total Cholesterol (mg/dL` >= 200
+full_df$unhealthy_trig <- full_df$`Triglyceride (mg/dL` >= 150
+full_df$unhealthy_ldl <- full_df$`LDL-cholesterol (mg/dL` >= 100
+full_df$unhealthy_hdl <- full_df$`Direct HDL-Cholesterol (mg/dL` < 60
 
-# hyper_df <- my_table[my_table$Systolic_Hypertension == TRUE,]
-# normo_df <- my_table[my_table$Systolic_Hypertension == FALSE,]
-# 
-# write.csv(hyper_df,
-#           file = file.path(output_dir,"tables", "PHTHTE_PAQ_noRx_BP_2015_match_diet_SYST1_RF_hyper.csv"),
-#           row.names = FALSE)
+write.csv(full_df,
+          file = file.path(output_dir,"cardio_respns_vars.csv"),
+          row.names = FALSE)
 # 
 # write.csv(normo_df,
 #           file = file.path(output_dir,"tables", "PHTHTE_PAQ_noRx_BP_2015_match_diet_SYST1_RF_normo.csv"),
