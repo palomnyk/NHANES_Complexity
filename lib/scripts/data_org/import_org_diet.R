@@ -73,7 +73,7 @@ USDA_food_g_only <- two_column_dummy(d1_diet_2015,
                     count_colnm = "Gram weight of the food/individual component")
 print(paste("Number of adult diet participants:", nrow(USDA_food_g_only)))
 
-write.csv(USDA_food_g_only, file = file.path(output_dir, "d1_USDA_food_g_2015.csv"),
+write.csv(USDA_food_g_only, file = file.path(output_dir, "d1_food_g_2015.csv"),
           row.names = FALSE)
 
 nutri_food_g <- merge(USDA_food_g_only, nutr_d1_diet_2015, by = id_var)
@@ -108,7 +108,7 @@ USDA_food_g_only <- two_column_dummy(d1_diet_2015,
                                      count_colnm = "Gram weight of the food/individual component")
 print(paste("Number of adult diet participants:", nrow(USDA_food_g_only)))
 
-write.csv(USDA_food_g_only, file = file.path(output_dir, "d1_USDA_cat_g_2015.csv"),
+write.csv(USDA_food_g_only, file = file.path(output_dir, "d1_cat_g_2015.csv"),
           row.names = FALSE)
 
 nutri_food_g <- merge(USDA_food_g_only, nutr_d1_diet_2015, by = id_var)
