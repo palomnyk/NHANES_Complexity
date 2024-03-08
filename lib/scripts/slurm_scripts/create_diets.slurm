@@ -17,7 +17,7 @@ echo Job: $SLURM_JOB_NAME with ID $SLURM_JOB_ID
 echo Running on host: `hostname`
 echo Using $SLURM_NTASKS processors across $SLURM_NNODES nodes
 
-module load R
+module load r
 Rscript /lib/scripts/data_org/import_org_diet.R
 
 echo ""
