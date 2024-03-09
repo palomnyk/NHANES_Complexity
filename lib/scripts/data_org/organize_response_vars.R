@@ -5,48 +5,11 @@ rm(list = ls()) #clear workspace
 
 #### Loading dependencies ####
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-
-if (!requireNamespace("optparse", quietly = TRUE)) install.packages("optparse")
-library("optparse")
+if (!requireNamespace("nhanesA", quietly = TRUE)) BiocManager::install("nhanesA")
 library("nhanesA")
-if (!requireNamespace("readxl", quietly = TRUE)) BiocManager::install("readxl")
-library("readxl")
-if (!requireNamespace("fastDummies", quietly = TRUE)) BiocManager::install("fastDummies")
-library("fastDummies")
-print("Reading cml arguments")
 
-option_list <- list(
-  optparse::make_option(c("-d", "--homedir"), type="character", 
-                        default=file.path('~','git',"NHANES_Complexity"), 
-                        help="dataset git repo path"),
-  optparse::make_option(c("-a", "--data"), type="character", default="BP_2015.csv",
-                        help="filename in tables folder"),
-  optparse::make_option(c("-l", "--delim"), type="character", default="\t",
-                        help="metadata file deliminator", metavar="character"),
-  optparse::make_option(c("-c", "--colnames"), type="character", default=1,
-                        help="metadata file row to use for row names"),
-  # callback = strsplit(), callback_args = "split = ','"),
-  optparse::make_option(c("-o", "--output_fname"), type="character", default="descriptives",
-                        help="output file name")
-); 
-
-opt_parser <- optparse::OptionParser(option_list=option_list);
-
-opt <- optparse::parse_args(opt_parser);
-
-print(opt)
-
-nhanes_names <- function(dl_df, dt_group, nh_tble) {
-  #puts human readable names on the NHANES tables
-  diet_names <- nhanesA::nhanesTableVars(data_group = dt_group,
-                                         nh_table = nh_tble,
-                                         namesonly = FALSE,
-                                         nchar = 160)
-  
-  my_ord <- match(names(dl_df), diet_names$Variable.Name)
-  names(dl_df) <- diet_names$Variable.Description[my_ord]
-  return(dl_df)
-}
+#### Load functions ####
+source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 
 # --------------------------------------------------------------------------
 print("Establishing directory layout and other constants.")
@@ -58,9 +21,9 @@ not_added <- c()
 full_df <- data.frame()
 id_name <- "Respondent sequence number"
 #### Loading in data ####
-import_tables <- my_table <- read.csv(file = file.path(output_dir, "response_features_tables.csv"),
-                                  header = T, comment.char = "#",
-                                  check.names =F)
+import_tables <- read.csv(file = file.path(output_dir, "response_features_tables.csv"),
+                          header = T, comment.char = "#",
+                          check.names =F)
 
 for (i in 1:nrow(import_tables)){
   yr <- import_tables$year[i]
