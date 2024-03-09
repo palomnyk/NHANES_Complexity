@@ -20,6 +20,9 @@ if (!requireNamespace("nhanesA", quietly = TRUE)) BiocManager::install("nhanesA"
 library("nhanesA")
 if (!requireNamespace("readxl", quietly = TRUE)) BiocManager::install("readxl")
 library("readxl")
+if (!requireNamespace("fastDummies", quietly = TRUE)) BiocManager::install("fastDummies")
+library("fastDummies")
+
 
 print("Loaded dependencies")
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
