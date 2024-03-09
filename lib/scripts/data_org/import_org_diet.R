@@ -32,7 +32,7 @@ dir.create(output_dir)
 # )
 
 #### Loading in data ####
-food_codes <- readxl::read_excel(file.path("Data", "WWEIA1516_foodcat_FNDDS.xlsx"), 
+food_codes <- readxl::read_excel(file.path("Data", "diet", "WWEIA1516_foodcat_FNDDS.xlsx"), 
                                  trim_ws = T, na = c("", "NA"))
 id_var <- "Respondent sequence number"
 #Load demographic data to remove children
