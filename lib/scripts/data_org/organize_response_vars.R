@@ -8,6 +8,11 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocMana
 
 if (!requireNamespace("optparse", quietly = TRUE)) install.packages("optparse")
 library("optparse")
+library("nhanesA")
+if (!requireNamespace("readxl", quietly = TRUE)) BiocManager::install("readxl")
+library("readxl")
+if (!requireNamespace("fastDummies", quietly = TRUE)) BiocManager::install("fastDummies")
+library("fastDummies")
 print("Reading cml arguments")
 
 option_list <- list(
@@ -131,8 +136,4 @@ full_df$unhealthy_hdl <- full_df$`Direct HDL-Cholesterol (mg/dL` < 60
 write.csv(full_df,
           file = file.path(output_dir,"cardio_respns_vars.csv"),
           row.names = FALSE)
-# 
-# write.csv(normo_df,
-#           file = file.path(output_dir,"tables", "PHTHTE_PAQ_noRx_BP_2015_match_diet_SYST1_RF_normo.csv"),
-#           row.names = FALSE)
 
