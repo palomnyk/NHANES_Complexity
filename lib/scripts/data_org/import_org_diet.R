@@ -18,6 +18,8 @@ rm(list = ls()) #clear workspace
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 if (!requireNamespace("nhanesA", quietly = TRUE)) BiocManager::install("nhanesA")
 library("nhanesA")
+if (!requireNamespace("readxl", quietly = TRUE)) BiocManager::install("readxl")
+library("readxl")
 
 print("Loaded dependencies")
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
