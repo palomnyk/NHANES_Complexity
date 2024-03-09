@@ -8,8 +8,8 @@
 #SBATCH --mem=50gb                                      # Memory limit
 #SBATCH --mail-type=BEGIN,END,FAIL                      # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=aaron.yerke@usda.gov                # Specified email address
-#SBATCH --output=~/slurmLogs/%x.%j.log                  # Set directory for standard output
-#SBATCH --error=~/slurmLogs/%x.%j.log                   # Set directory for error log
+#SBATCH --output=./slurmLogs/%x.%j.log                  # Set directory for standard output
+#SBATCH --error=./slurmLogs/%x.%j.log                   # Set directory for error log
 #SBATCH --get-user-env
 
 ### Display the job context
@@ -18,7 +18,7 @@ echo Running on host: `hostname`
 echo Using $SLURM_NTASKS processors across $SLURM_NNODES nodes
 
 module load r
-Rscript /lib/scripts/data_org/import_org_diet.R
+Rscript ./lib/scripts/data_org/import_org_diet.R
 
 echo ""
 echo "======================================================"
