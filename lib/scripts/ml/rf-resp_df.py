@@ -116,10 +116,10 @@ print("Defining functions", flush = True)
 # --------------------------------------------------------------------------
 print("Establishing directory layout.", flush = True)
 # --------------------------------------------------------------------------
-output_dir = os.path.join( "output", options.out_folder)
+output_dir = os.path.join(".", "output", options.out_folder)
 if not os.path.exists(output_dir):
-	os.makedirs(os.path.join(output_dir, "graphics"))
-	os.makedirs(os.path.join(output_dir, "tables"))
+	os.makedirs(os.path.join(".",output_dir, "graphics"))
+	os.makedirs(os.path.join(".",output_dir, "tables"))
 assert os.path.exists(output_dir)
 
 # --------------------------------------------------------------------------
@@ -142,12 +142,12 @@ if options.title == False:
 
 # response_cols = ["Systolic:  Blood pressure (first reading) mm Hg", "Diastolic:  Blood pressure (first reading) mm Hg"]#TODO: FIX THIS
 # response_cols = ["Systolic:  Blood pressure (first reading) mm Hg", "Systolic_Hypertension", "Diastolic:  Blood pressure (first reading) mm Hg", "Diastolic_Hypertension"]#TODO: FIX THIS
-response_df = pd.read_csv(os.path.join(options.resp_fn), \
+response_df = pd.read_csv(os.path.join(".",options.resp_fn), \
 		sep=",", header=0).replace("TRUE", True).replace("FALSE", False)
 print(response_df.columns)
 response_cols = response_df.columns
 response_df = response_df.sort_values(by = id_var)
-pred_df = pd.read_csv(os.path.join(options.pred_table), \
+pred_df = pd.read_csv(os.path.join(".",options.pred_table), \
 		sep=",", header=0).fillna(0)
 print(pred_df)
 pred_df = pred_df.sort_values(by = id_var)
