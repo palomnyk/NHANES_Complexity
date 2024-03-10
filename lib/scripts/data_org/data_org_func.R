@@ -118,3 +118,5 @@ unit_test1 <- two_column_dummy(df = tst_df,
                                item_colnm = "item",
                                count_colnm = "count")
 identical(unit_test1, dummy_df)
+
+print("untions loaded!")

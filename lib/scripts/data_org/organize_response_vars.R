@@ -100,3 +100,4 @@ write.csv(full_df,
           file = file.path(output_dir,"cardio_respns_vars.csv"),
           row.names = FALSE)
 
+print("Script complete!")
