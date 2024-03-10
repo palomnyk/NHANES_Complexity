@@ -19,7 +19,7 @@ echo Using $SLURM_NTASKS processors across $SLURM_NNODES nodes
 
 module load miniconda
 conda init bash
-conda activate python_ml_conda
+source activate python_ml_conda
 python lib/scripts/ml/rand_for_reg-sing_col_resp-single_col_divide.py \
 	--response_fn Data/resp_vars/cardio_respns_vars.csv \
 	--delimeter , \

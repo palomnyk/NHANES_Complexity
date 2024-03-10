@@ -26,7 +26,7 @@ rcParams.update({'figure.autolayout': True})
 import matplotlib.backends.backend_pdf
 import matplotlib.colors as mcolors
 import matplotlib
-matplotlib.use('TKAgg')
+# matplotlib.use('TKAgg')
 from sklearn import model_selection
 from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import LinearRegression
