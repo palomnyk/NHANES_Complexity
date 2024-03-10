@@ -21,7 +21,7 @@ module load miniconda
 conda init bash
 source activate python_ml_conda
 python lib/scripts/ml/rf-resp_df.py \
-	--response_fn Data/resp_vars/cardio_respns_vars.csv \
+	--response_fn Data/respns_vars/cardio_respns_vars.csv \
 	--delimeter , \
 	--pred_path Data/diet/d1_nutri_food_g_2015.csv \
 	--out_folder diet_test \
