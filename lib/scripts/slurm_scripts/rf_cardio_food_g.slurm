@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##SBATCH --partition=Pisces                             # Partition/queue requested on server
-#SBATCH --job-name=rf_test_nut_food_g                   # Job name
+#SBATCH --job-name=rf_food_grams                        # Job name
 #SBATCH --time=24:00:00                                 # Time limit (hrs:min:sec)
 #SBATCH --nodes=1                                       # Number of nodes requested
 #SBATCH --ntasks-per-node=1                          		# Number of CPUs (processor cores/tasks)
