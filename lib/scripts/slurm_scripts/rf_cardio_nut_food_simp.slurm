@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --partition=Medium                              # Partition/queue requested on server
+#SBATCH --partition=medium                              # Partition/queue requested on server
 #SBATCH --job-name=rf_nutri_food_simple                 # Job name
 #SBATCH --time=75:00:00                                 # Time limit (hrs:min:sec)
 #SBATCH --nodes=1                                       # Number of nodes requested
