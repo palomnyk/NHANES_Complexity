@@ -2,17 +2,20 @@
 # Script for importing and organizing dietary data
 # https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html
 # Datasets to create:
-#   A. Individual foods
-#     a. alone (1) and with nutrients (2)
-#   B. Food categories
-#     a. alone (3) and with nutrients (4)
-#   C. Nutients alone (5)
-#   D. Individual foods grams
-#     a. alone (6) and with nutrients (7)
-#   F. Food categories grams
-#     a. alone (8) and with nutrients (9)
+# A. Individual foods
+#   a. alone (1) and with nutrients (2)
+# B. Food categories
+#   a. alone (3) and with nutrients (4)
+# C. Nutients alone (5)
+# D. Individual foods grams
+#   a. alone (6) and with nutrients (7)
+# F. Food categories grams
+#   a. alone (8) and with nutrients (9)
   
 rm(list = ls()) #clear workspace
+
+pwd <- getwd()
+print(paste("Working in", pwd))
 
 #### Loading dependencies ####
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
@@ -24,7 +27,7 @@ if (!requireNamespace("fastDummies", quietly = TRUE)) BiocManager::install("fast
 library("fastDummies")
 
 
-print("Loaded dependencies")
+print("Loaded packages")
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 
 #### Establish directory layout and other constants ####
@@ -42,7 +45,7 @@ id_var <- "Respondent sequence number"
 demo_2015 <- download_org_nhanes(dt_group = "DEMO",
                                  nh_tble = "DEMO_I")
 adult_seqn <- demo_2015[,id_var][
-  which(demo_2015$`Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age`>=18)]
+  which(demo_2015$`Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age`>18)]
 print(paste("Number of participants:", nrow(demo_2015)))
 print(paste("Number of adults:", length(adult_seqn)))
 #### Organize diet data, only individual foods first ####
