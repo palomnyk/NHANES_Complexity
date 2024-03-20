@@ -82,7 +82,7 @@ options, unknown = parser.parse_known_args()
 print(options)
 
 """
-python lib/scripts/ml/rand_for_reg-sing_col_resp-single_col_divide.py \
+python lib/scripts/ml/rf_resp_df.py \
 	--response_fn Data/resp_vars/cardio_respns_vars.csv \
 	--delimeter , \
 	--pred_path Data/diet/d1_cat_g_2015.csv \
@@ -90,7 +90,7 @@ python lib/scripts/ml/rand_for_reg-sing_col_resp-single_col_divide.py \
 	--output_label food_cat_grams \
 	--title food_cat_grams
 
-python lib/scripts/ml/rand_for_reg-sing_col_resp-single_col_divide.py \
+python lib/scripts/ml/rf_resp_df.py \
 	--response_fn Data/resp_vars/cardio_respns_vars.csv \
 	--delimeter , \
 	--pred_path Data/diet/d1_food_g_2015.csv \
