@@ -51,3 +51,9 @@ rsconnect/
 # For nextflow
 .nextflow*
 work/
+
+# NHANESA files
+d1_*.csv
+
+# slurm logs 
+*.log
