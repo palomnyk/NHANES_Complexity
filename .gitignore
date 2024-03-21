@@ -57,3 +57,6 @@ d1_*.csv
 
 # slurm logs 
 *.log
+
+# my output
+/output/
