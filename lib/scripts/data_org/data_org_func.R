@@ -93,7 +93,7 @@ two_column_dummy <- function(df, id_colnm, item_colnm, count_colnm) {
   new_df <- data.frame(matrix(0 ,nrow = length(id_var), ncol = length(uniq_items)))
   names(new_df) <- uniq_items
   row.names(new_df) <- id_var
-  print(id_var)
+  # print(id_var)
   for (id in 1:nrow(new_df)) {
     my_id <- as.character(id_var[id])
     # print(my_id)
@@ -119,4 +119,4 @@ unit_test1 <- two_column_dummy(df = tst_df,
                                count_colnm = "count")
 identical(unit_test1, dummy_df)
 
-print("untions loaded!")
+print("Functions loaded!")
