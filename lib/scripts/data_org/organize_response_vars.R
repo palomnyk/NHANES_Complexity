@@ -70,7 +70,35 @@ for (i in 1:nrow(import_tables)){
     }
   }#1st if
 }
+#### Remove participants that are taking medication for their condition ####
+rxq_2015 <- download_org_nhanes(dt_group = "Q",
+                                 nh_tble = "RXQ_RX_I")
+rxq_2015$all_descr <- paste(rxq_2015$`ICD-10-CM code 1 description`,
+                            rxq_2015$`ICD-10-CM code 2 description`,
+                            rxq_2015$`ICD-10-CM code 3 description`, sep = "")
 
+rxq_2015$no_bp_med <- !grepl("hyperten",rxq_2015$all_descr, ignore.case = TRUE)
+
+rxq_2015$no_chol_med <- !grepl("cholest",rxq_2015$all_descr, ignore.case = TRUE)
+
+rxq_2015 <- rxq_2015[,c("no_bp_med","no_chol_med","Respondent sequence number")]
+
+test <- grepl("triglyc",rxq_2015$all_descr, ignore.case = TRUE)
+print(paste("any triglyceride medicine:", any(test == T)))
+
+rxq_2015 <- aggregate(rxq_2015, by = list(rxq_2015$`Respondent sequence number`),
+                  FUN = sum)
+rxq_2015$`Respondent sequence number` = rxq_2015$Group.1
+
+rxq_2015$no_bp_med <- as.logical(rxq_2015$no_bp_med)
+rxq_2015$no_chol_med <- as.logical(rxq_2015$no_chol_med)
+
+print(paste("There are", sum(rxq_2015$no_bp_med == FALSE), 
+            "hbps and", sum(rxq_2015$no_chol_med == FALSE), "hchol to drop"))
+
+nrow(rxq_2015)
+nrow(full_df)
+full_df <- merge(full_df, rxq_2015, by = id_name, all.x = TRUE)
 #### Organize and categorize BP response vars###
 prefix_to_average <- c("Systolic", "Diastolic")
 threshold <- c(130, 80)
@@ -82,19 +110,28 @@ for (i in 1:length(prefix_to_average)){
   print(my_cols)
   my_cols <- names(full_df)[my_cols]
   my_mean <- unlist(rowMeans(full_df[ , my_cols], na.rm=T))
+  my_mean[which(full_df$no_bp_med == FALSE)] <- NA
   full_df[,paste0(pre, "_mean")] <- my_mean
   full_df[,paste0(pre, "_hypertension")] <- my_mean >= threshold[i]
   full_df <- full_df[,!(names(full_df) %in% my_cols)]
 }
-
+# t1 <- c(1,2,3,4,5)
+# t1[which(t1 == 3)] <- NA
 
 full_df$hypertension_either <- ifelse(full_df$`Systolic_hypertension` == TRUE | full_df$`Diastolic_hypertension` == TRUE,
                                       TRUE, FALSE)
 #### Hardcode other blood lab result classifications ####
+full_df$`Total Cholesterol (mg/dL`[which(full_df$no_chol_med == TRUE)] <- NA
+full_df$`LDL-cholesterol (mg/dL`[which(full_df$`LDL-cholesterol (mg/dL` == TRUE)] <- NA
+full_df$`Direct HDL-Cholesterol (mg/dL`[which(full_df$`Direct HDL-Cholesterol (mg/dL` == TRUE)]
 full_df$unhealthy_tot_chol <- full_df$`Total Cholesterol (mg/dL` >= 200
 full_df$unhealthy_trig <- full_df$`Triglyceride (mg/dL` >= 150
 full_df$unhealthy_ldl <- full_df$`LDL-cholesterol (mg/dL` >= 100
 full_df$unhealthy_hdl <- full_df$`Direct HDL-Cholesterol (mg/dL` < 60
+
+remove_cols <- c("no_bp_med","no_chol_med","Group.1")
+full_df <- subset(full_df, select = !(names(full_df) %in% remove_cols))
+print(paste(colSums(full_df, na.rm = TRUE)))
 
 write.csv(full_df,
           file = file.path(output_dir,"cardio_respns_vars.csv"),
