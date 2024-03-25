@@ -149,5 +149,5 @@ write.csv(nutri_food_g_cat_g, file = file.path(output_dir, "d1_nutri_food_g_cat_
           row.names = FALSE)
 # H. Category simple + food simple + nutrient (11)
 nutri_food_cat <- merge(nutri_food_simple, USDA_food_simple)
-write.csv(nutri_food_cat, file = file.path(output_dir, nutri_food_cat),
+write.csv(nutri_food_cat, file = file.path(output_dir, "d1_nutri_food_cat_2015.csv"),
           row.names = FALSE)
