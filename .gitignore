@@ -60,3 +60,6 @@ d1_*.csv
 
 # my output
 /output/
+
+# for snakemake
+/.snakemake
