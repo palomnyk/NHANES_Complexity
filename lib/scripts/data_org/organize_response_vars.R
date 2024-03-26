@@ -131,7 +131,14 @@ full_df$unhealthy_hdl <- full_df$`Direct HDL-Cholesterol (mg/dL` < 60
 
 remove_cols <- c("no_bp_med","no_chol_med","Group.1")
 full_df <- subset(full_df, select = !(names(full_df) %in% remove_cols))
-print(paste(colSums(full_df, na.rm = TRUE)))
+
+
+num_samples <- data.frame("num_samples" = colSums(!is.na(full_df)),
+                          "resp_var" = names(full_df))
+print(num_samples)
+write.csv(num_samples,
+          file = file.path(output_dir,"num_samples.csv"),
+          row.names = FALSE)
 
 write.csv(full_df,
           file = file.path(output_dir,"cardio_respns_vars.csv"),
