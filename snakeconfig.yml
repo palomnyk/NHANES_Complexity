@@ -1,0 +1,17 @@
+# Currently using to declutter Snakefile
+
+params: 
+  bash_or_slurm: bash
+
+test_diets:
+  d1_nutr_only_2015.csv,
+  d1_food_g_2015.csv,
+  d1_nutri_food_g_2015.csv,
+  d1_food_2015.csv,
+  d1_nutri_food_2015.csv,
+  d1_cat_g_2015.csv,
+  d1_nutri_cat_g_2015.csv,
+  d1_cat_2015.csv,
+  d1_nutri_cat_2015.csv,
+  d1_nutri_food_g_cat_g_2015.csv,
+  d1_nutri_food_cat_2015.csv,
