@@ -17,7 +17,8 @@ echo Job: $SLURM_JOB_NAME with ID $SLURM_JOB_ID
 echo Running on host: `hostname`
 echo Using $SLURM_NTASKS processors across $SLURM_NNODES nodes
 
-module load miniconda
+module purge  # clear module environment
+module load miniconda  # load miniconda
 conda init bash
 source activate python_ml_conda
 python lib/scripts/ml/rf-resp_df.py \
