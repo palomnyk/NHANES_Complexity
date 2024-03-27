@@ -51,3 +51,15 @@ rule rf_cardio_cat_g:
         """
         {params.mode} lib/scripts/slurm_scripts/rf_cardio_cat_g.slurm
         """
+rule rf_cardio_cat:
+    input:
+        resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
+        diet_data = os.path.join("Data","diet", "d1_cat_2015.csv")
+    params: mode = config["bash_or_slurm"]
+    output:
+        os.path.join("output","diet","tables","cat_simp_data.csv"),
+        os.path.join("output", "diet", "tables", "ave_feat_imp_cat_simp.csv")
+    shell:
+        """
+        {params.mode} lib/scripts/slurm_scripts/rf_cardio_cat.slurm
+        """
