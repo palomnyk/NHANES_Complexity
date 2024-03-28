@@ -26,8 +26,8 @@ python lib/scripts/ml/rf-resp_df.py \
 	--delimeter , \
 	--pred_path Data/diet/d1_food_2015.csv \
 	--out_folder diet_test \
-	--output_label nutr_food_simple \
-	--title nutri_food_simple
+	--output_label food_simple \
+	--title food_simple
 
 echo ""
 echo "======================================================"
