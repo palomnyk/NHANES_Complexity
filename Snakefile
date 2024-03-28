@@ -1,5 +1,6 @@
 # Author: Aaron Yerke (aaronyerke@d1_cat_2015gmail.com)
 # Main snakemake file for running and re-running scripts
+# snakemake --dry-run
 configfile: "config.yaml"
 # print(config)
 import os
@@ -12,7 +13,7 @@ diet_df = pd.read_csv(os.path.join(".","Data", "diet", "diet_test_rf.csv"), \
 test_diets = expand("Data/diet/{diet}", diet=diet_df.loc[:,"Diet_orgs"])
 print(test_diets)
 rule targets:
-    input: "output/diet/tables/food_cat_grams_data.csv"
+    input: os.path.join("output", "diet", "tables", "ave_feat_imp_food_simple.csv")
 
 rule create_diets:
     input:
@@ -63,15 +64,27 @@ rule rf_cardio_cat:
         """
         {params.mode} lib/scripts/slurm_scripts/rf_cardio_cat.slurm
         """
-rule rf_cardio_food_g:
+rule rf_cardio_food_simp:
     input:
         resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
-        diet_data = os.path.join("Data","diet", "d1_food_g_2015.csv")
+        diet_data = os.path.join("Data","diet", "d1_food_2015.csv")
     params: mode = config["bash_or_slurm"]
     output:
-        os.path.join("output","diet","tables","food_grams_data.csv"),
-        os.path.join("output", "diet", "tables", "ave_feat_imp_food_grams.csv")
+        os.path.join("output","diet","tables","food_simple_data.csv"),
+        os.path.join("output", "diet", "tables", "ave_feat_imp_food_simple.csv")
     shell:
         """
-        {params.mode} lib/scripts/slurm_scripts/rf_cardio_food_g.slurm
+        {params.mode} lib/scripts/slurm_scripts/rf_cardio_food_simp.slurm
+        """
+rule rf_cardio_nut_cat:
+    input:
+        resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
+        diet_data = os.path.join("Data","diet", "d1_nutri_cat_2015.csv")
+    params: mode = config["bash_or_slurm"]
+    output:
+        os.path.join("output","diet","tables","nut_cat_simple_data.csv"),
+        os.path.join("output", "diet", "tables", "ave_feat_imp_nut_cat_simple.csv")
+    shell:
+        """
+        {params.mode} lib/scripts/slurm_scripts/rf_cardio_food_simp.slurm
         """
