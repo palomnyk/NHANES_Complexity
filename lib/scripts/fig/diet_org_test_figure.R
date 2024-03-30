@@ -15,8 +15,72 @@ library("ggplot2")
 print("Loaded dependencies")
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 
+#### Functions ####
+org_meth_plot <- function (df_table, title_text){
+  means <- aggregate(df_table$score, by=list(df_table$org_method), mean)
+  names(means) <- c("org_method", "m")
+  stdv <- aggregate(df_table$score, by=list(df_table$org_method), sd)
+  names(stdv) <- c("org_method", "s")
+  means <- merge(means, stdv)
+  means$x <- round(means$m, 3)
+  g <- ggplot2::ggplot(df_table, aes(x=response_var, y=score)) + 
+    geom_boxplot() +
+    ggplot2::ylab("Score") +
+    ggplot2::ggtitle(label = paste(title_text)) +
+    geom_text(data = means, aes(label=paste("m:",x), y=x + 0.1, x = 3), color="black") +
+    ggplot2::scale_x_discrete(guide = guide_axis(angle = 90)) +
+    ggplot2::geom_hline(data = means, aes(yintercept = x), color="red", linetype=4) +
+    ggplot2::geom_hline(data = means, aes(yintercept = x + s), color="blue", linetype=2) +
+    ggplot2::geom_hline(data = means, aes(yintercept = x - s), color="blue", linetype=2) +
+    ggplot2::facet_grid(~ org_method)
+  return(g)
+}
+resp_vars_plot <- function (df_table, title_text){
+  means <- aggregate(df_table$score, by=list(df_table$response_var), mean)
+  names(means) <- c("response_var", "m")
+  stdv <- aggregate(df_table$score, by=list(df_table$response_var), sd)
+  names(stdv) <- c("response_var", "s")
+  means <- merge(means, stdv)
+  means$x <- round(means$m, 3)
+  g <- ggplot2::ggplot(df_table, aes(x=org_method, y=score)) + 
+    geom_boxplot() +
+    ggplot2::ylab("Score") +
+    ggplot2::ggtitle(label = paste(title_text)) +
+    geom_text(data = means, aes(label=paste("m:",x), y=x + 0.1, x = 3), color="black") +
+    ggplot2::scale_x_discrete(guide = guide_axis(angle = 90)) +
+    ggplot2::geom_hline(data = means, aes(yintercept = x), color="red", linetype=4) +
+    ggplot2::geom_hline(data = means, aes(yintercept = x + s), color="blue", linetype=2) +
+    ggplot2::geom_hline(data = means, aes(yintercept = x - s), color="blue", linetype=2) +
+    ggplot2::facet_grid(~ response_var)
+  return(g)
+}
+
+plot_data <- function (df_table, f_column = "org_method", title_text){
+  means <- aggregate(df_table[,"score"], by=list(df_table[,f_column]), mean)
+  names(means) <- c(f_column, "m")
+  stdv <- aggregate(df_table$score, by=list(df_table[,f_column]), sd)
+  names(stdv) <- c(f_column, "s")
+  means <- merge(means, stdv)
+  means$x <- round(means$m, 3)
+  g <- ggplot2::ggplot(df_table, aes(x=response_var, y=score)) + 
+    geom_boxplot() +
+    ggplot2::ylab("Score") +
+    ggplot2::ggtitle(label = paste(title_text)) +
+    geom_text(data = means, aes(label=paste("m:",x), y=x + 0.1, x = 3), color="black") +
+    ggplot2::scale_x_discrete(guide = guide_axis(angle = 90)) +
+    ggplot2::geom_hline(data = means, aes(yintercept = x), color="red", linetype=4) +
+    ggplot2::geom_hline(data = means, aes(yintercept = x + s), color="blue", linetype=2) +
+    ggplot2::geom_hline(data = means, aes(yintercept = x - s), color="blue", linetype=2) +
+    ggplot2::facet_grid(~ f_column)
+  return(g)
+}
+
 #### Establish directory layout and other constants ####
 output_dir <- file.path("output", "diet_test")
+
+numeric_only <- c("Total Cholesterol (mg/dL","Triglyceride (mg/dL", 
+                  "LDL-cholesterol (mg/dL","Direct HDL-Cholesterol (mg/dL",
+                  "Systolic_mean", "Diastolic_mean")
 
 #### Loading in data ####
 id_var <- "Respondent sequence number"
@@ -30,6 +94,7 @@ response_var <- vector(mode = "character")
 org_method <- vector(mode = "character")
 score <- vector(mode = "numeric")
 
+# Iterate through files and populate variables
 for (i in 1:length(dir_files)){
   dat_f <- dir_files[i]
   print(dat_f)
@@ -64,78 +129,23 @@ my_order <- c(
   "Systolic_hypertension", "Diastolic_hypertension",	"hypertension_either",
   "unhealthy_tot_chol",	"unhealthy_trig",	"unhealthy_ldl",	"unhealthy_hdl")
 
-
 big_table$response_var <- factor(big_table$response_var, levels = my_order)
 
-means <- data.frame(aggregate(big_table$score, by=list(big_table$org_method), mean))
-names(means) <- c("org_method", "x")
-pdf(file.path(output_dir, "graphics", "all_diet_orgs.pdf"))
-g <- ggplot2::ggplot(big_table, aes(x=response_var, y=score)) + 
-  geom_boxplot() +
-  ggplot2::ylab("Score") +
-  ggplot2::ggtitle(label = paste("Nutrition data org strategies full result")) +
-  ggplot2::scale_x_discrete(guide = guide_axis(angle = 90)) +
-  ggplot2::geom_hline(data = means, aes(yintercept = x), color="red", linetype=1) +
-  facet_grid(~ org_method)
-g
+# pdf(file.path(output_dir, "graphics", "all_diet_orgs.pdf"), width = 18, height = 10)
 
-means <- aggregate(big_table$score, by=list(big_table$response_var), mean)
-names(means) <- c("response_var", "x")
-
-g <- ggplot2::ggplot(big_table, aes(x=org_method, y=score)) + 
-  geom_boxplot() +
-  ggplot2::ylab("Score") +
-  ggplot2::ggtitle(label = paste("Nutrition data organization strategies full result")) +
-  ggplot2::scale_x_discrete(guide = guide_axis(angle = 90)) +
-  ggplot2::geom_hline(data = means, aes(yintercept = x), color="red", linetype=1) +
-  facet_grid(~response_var)
-g
-
+org_meth_plot(big_table, "Nutrition data org strategies full result")
+resp_vars_plot(big_table, "Nutrition data org strategies full result")
 
 big_table <- big_table[ ! grepl("trig", big_table$response_var, ignore.case = TRUE), ]
-means <- aggregate(big_table$score, by=list(big_table$org_method), mean)
-names(means) <- c("org_method", "x")
-g <- ggplot2::ggplot(big_table, aes(x=response_var, y=score)) + 
-  geom_boxplot() +
-  ggplot2::ylab("Score") +
-  ggplot2::ggtitle(label = paste("Nutrition data organization strategies NO TRIG")) +
-  ggplot2::scale_x_discrete(guide = guide_axis(angle = 90)) +
-  ggplot2::geom_hline(data = means, aes(yintercept = x), color="red", linetype=1) +
-  facet_grid(~ org_method)
-g
-
-means <- aggregate(big_table$score, by=list(big_table$response_var), mean)
-names(means) <- c("response_var", "x")
-g <- ggplot2::ggplot(big_table, aes(x=org_method, y=score)) + 
-  geom_boxplot() +
-  ggplot2::ylab("Score") +
-  ggplot2::ggtitle(label = paste("Nutrition data organization strategies NO TRIG")) +
-  ggplot2::scale_x_discrete(guide = guide_axis(angle = 90)) +
-  ggplot2::geom_hline(data = means, aes(yintercept = x), color="red", linetype=1) +
-  facet_grid(~response_var)
-g
-
-numeric_only <- c("Total Cholesterol (mg/dL","Triglyceride (mg/dL", 
-                  "LDL-cholesterol (mg/dL","Direct HDL-Cholesterol (mg/dL",
-                  "Systolic_mean", "Diastolic_mean")
+org_meth_plot(big_table, "Nutrition data organization strategies NO TRIG")
+resp_vars_plot(big_table, "Nutrition data organization strategies NO TRIG")
 
 num_table <- big_table[!(big_table$response_var %in% numeric_only),]
-means <- aggregate(num_table$score, by=list(num_table$org_method), mean)
-names(means) <- c("org_method", "m")
-stdv <- aggregate(num_table$score, by=list(num_table$org_method), sd)
-names(stdv) <- c("org_method", "s")
-means <- merge(means, stdv)
-means$x <- round(means$m, 3)
-g <- ggplot2::ggplot(num_table, aes(x=response_var, y=score)) + 
-  geom_boxplot() +
-  ggplot2::ylab("Score") +
-  ggplot2::ggtitle(label = paste("Nutrition data organization strategies NO TRIG CAT ONLY")) +
-  geom_text(data = means, aes(label=paste("m:",x), y=x + 0.1, x = 3), color="black") +
-  ggplot2::scale_x_discrete(guide = guide_axis(angle = 90)) +
-  ggplot2::geom_hline(data = means, aes(yintercept = x), color="red", linetype=4) +
-  ggplot2::geom_hline(data = means, aes(yintercept = x + s), color="blue", linetype=2) +
-  ggplot2::geom_hline(data = means, aes(yintercept = x - s), color="blue", linetype=2) +
-  ggplot2::facet_grid(~ org_method)
-g
+org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG CAT ONLY")
+org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG CAT ONLY")
 
-dev.off()
+num_table <- big_table[big_table$response_var %in% numeric_only,]
+org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
+org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
+
+# dev.off()
