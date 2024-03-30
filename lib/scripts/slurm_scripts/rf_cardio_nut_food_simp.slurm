@@ -2,9 +2,9 @@
 
 #SBATCH --partition=medium                              # Partition/queue requested on server
 #SBATCH --job-name=rf_nutri_food_simple                 # Job name
-#SBATCH --time=75:00:00                                 # Time limit (hrs:min:sec)
+#SBATCH --time=80:00:00                                 # Time limit (hrs:min:sec)
 #SBATCH --nodes=1                                       # Number of nodes requested
-#SBATCH --ntasks-per-node=1                          		# Number of CPUs (processor cores/tasks)
+#SBATCH --ntasks-per-node=1                          	# Number of CPUs (processor cores/tasks)
 #SBATCH --mem=50gb                                      # Memory limit
 #SBATCH --mail-type=BEGIN,END,FAIL                      # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=aaron.yerke@usda.gov                # Specified email address
