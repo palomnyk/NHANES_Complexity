@@ -1,12 +1,12 @@
 ﻿Diet_orgs,RF slurm,d1_diet_orgs
-"    d1d2_nutr_only_2015.csv,","    rf_cardio_nut_only.slurm,","    d1_nutr_only_2015.csv,"
-"    d1d2_food_g_2015.csv,","    rf_cardio_food_g.slurm,","    d1_food_g_2015.csv,"
-"    d1d2_nutri_food_g_2015.csv,","    rf_cardio_nutr_food_g.slurm,","    d1_nutri_food_g_2015.csv,"
-"    d1d2_food_2015.csv,","    rf_cardio_food_simp.slurm,","    d1_food_2015.csv,"
-"    d1d2_nutri_food_2015.csv,","    rf_cardio_nut_food_simp.slurm,","    d1_nutri_food_2015.csv,"
-"    d1d2_cat_g_2015.csv,","    rf_cardio_cat_g.slurm,","    d1d2_cat_g_2015.csv,"
-"    d1d2_nutri_cat_g_2015.csv,","    rf_cardio_nut_cat_g.slurm,","    d1_nutri_cat_g_2015.csv,"
-"    d1d2_cat_2015.csv,","    rf_cardio_cat.slurm,","    d1_cat_2015.csv,"
-"    d1d2_nutri_cat_2015.csv,","    rf_cardio_nut_cat.slurm,","    d1_nutri_cat_2015.csv,"
-"    d1d2_nutri_food_g_cat_g_2015.csv,",    rf_cardio_nut_food_cat_g.slurm,"    d1_nutri_food_g_cat_g_2015.csv,"
-"    d1d2_nutri_food_cat_2015.csv,",    rf_cardio_nut_food_cat_simp.slurm,"    d1_nutri_food_cat_2015.csv,"
+d1d2_nutr_only_2015.csv,rf_cardio_nut_only.slurm,d1_nutr_only_2015.csv
+ d1d2_food_g_2015.csv,rf_cardio_food_g.slurm,d1_food_g_2015.csv
+ d1d2_nutri_food_g_2015.csv,rf_cardio_nutr_food_g.slurm,d1_nutri_food_g_2015.csv
+ d1d2_food_2015.csv,rf_cardio_food_simp.slurm,d1_food_2015.csv
+ d1d2_nutri_food_2015.csv, rf_cardio_nut_food_simp.slurm,d1_nutri_food_2015.csv
+ d1d2_cat_g_2015.csv, rf_cardio_cat_g.slurm,d1_cat_g_2015.csv
+ d1d2_nutri_cat_g_2015.csv, rf_cardio_nut_cat_g.slurm,d1_nutri_cat_g_2015.csv
+ d1d2_cat_2015.csv, rf_cardio_cat.slurm,d1_cat_2015.csv
+ d1d2_nutri_cat_2015.csv, rf_cardio_nut_cat.slurm,d1_nutri_cat_2015.csv
+ d1d2_nutri_food_g_cat_g_2015.csv, rf_cardio_nut_food_cat_g.slurm,d1_nutri_food_g_cat_g_2015.csv
+ d1d2_nutri_food_cat_2015.csv, rf_cardio_nut_food_cat_simp.slurm,d1_nutri_food_cat_2015.csv
