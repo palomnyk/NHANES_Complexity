@@ -38,7 +38,17 @@ rule create_diets:
         script = os.path.join( "lib","scripts","data_org","import_org_diet.R"),
         food_codes = os.path.join("Data", "diet", "WWEIA1516_foodcat_FNDDS.xlsx"),
     output:
-        test_diets
+        "Data/diet/d1d2_nutr_only_2015.csv",
+        "Data/diet/d1d2_food_g_2015.csv",
+        "Data/diet/d1d2_nutri_food_g_2015.csv",
+        "Data/diet/d1d2_food_2015.csv",
+        "Data/diet/d1d2_nutri_food_2015.csv",
+        "Data/diet/d1d2_cat_g_2015.csv",
+        "Data/diet/d1d2_nutri_cat_g_2015.csv",
+        "Data/diet/d1d2_cat_2015.csv",
+        "Data/diet/d1d2_nutri_cat_2015.csv",
+        "Data/diet/d1d2_nutri_food_g_cat_g_2015.csv",
+        "Data/diet/d1d2_nutri_food_cat_2015.csv",
     params:
         mode = config["bash_or_slurm"]
     shell:
