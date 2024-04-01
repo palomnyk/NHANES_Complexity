@@ -182,7 +182,7 @@ rule rf_cardio_nut_food_simp:
 rule rf_cardio_nut_only:
     input:
         resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
-        diet_data = os.path.join("Data","diet", "d1_nutri_only_2015.csv")
+        diet_data = os.path.join("Data","diet", "d1_nutr_only_2015.csv")
     params: mode = config["bash_or_slurm"]
     output:
         os.path.join("output","diet","tables","nutri_only_data.csv"),
