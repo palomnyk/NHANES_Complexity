@@ -24,7 +24,7 @@ source activate python_ml_conda
 python lib/scripts/ml/rf-resp_df.py \
 	--response_fn Data/respns_vars/cardio_respns_vars.csv \
 	--delimeter , \
-	--pred_path Data/diet/d1_cat_2015.csv \
+	--pred_path Data/diet/d1d2_cat_2015.csv \
 	--out_folder diet_test \
 	--output_label cat_simple \
 	--title cat_simple
