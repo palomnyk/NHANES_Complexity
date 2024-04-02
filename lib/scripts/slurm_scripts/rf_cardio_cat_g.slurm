@@ -20,6 +20,7 @@ echo Using $SLURM_NTASKS processors across $SLURM_NNODES nodes
 module purge  # clear module environment
 module load miniconda  # load miniconda
 conda init bash
+conda activate python_ml_conda
 source activate python_ml_conda
 python lib/scripts/ml/rf-resp_df.py \
 	--response_fn Data/respns_vars/cardio_respns_vars.csv \
