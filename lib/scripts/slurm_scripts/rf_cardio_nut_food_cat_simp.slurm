@@ -19,6 +19,7 @@ echo Using $SLURM_NTASKS processors across $SLURM_NNODES nodes
 
 module purge  # clear module environment
 module load miniconda  # load miniconda
+source /software/el9/apps/miniconda/4.12.0
 conda init bash
 conda activate python_ml_conda
 source activate python_ml_conda
