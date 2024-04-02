@@ -19,10 +19,13 @@ echo Using $SLURM_NTASKS processors across $SLURM_NNODES nodes
 
 module purge  # clear module environment
 module load miniconda  # load miniconda
-source /software/el9/apps/miniconda/4.12.0
 conda init bash
+python --version
+conda deactivate
+python --version
 conda activate python_ml_conda
 source activate python_ml_conda
+python --version
 python lib/scripts/ml/rf-resp_df.py \
 	--response_fn Data/respns_vars/cardio_respns_vars.csv \
 	--delimeter , \
