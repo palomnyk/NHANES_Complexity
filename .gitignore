@@ -61,6 +61,8 @@ d1_*.csv
 
 # my output
 /output/
+/data/nhanesA_tables
+/slurmLogs/
 
 # for snakemake
 /.snakemake
