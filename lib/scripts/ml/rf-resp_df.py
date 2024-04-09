@@ -85,27 +85,10 @@ print(options)
 python lib/scripts/ml/rf_resp_df.py \
 	--response_fn Data/resp_vars/cardio_respns_vars.csv \
 	--delimeter , \
-	--pred_path Data/diet/d1_cat_g_2015.csv \
-	--out_folder diet_test \
-	--output_label food_cat_grams \
-	--title food_cat_grams
-
-python lib/scripts/ml/rf_resp_df.py \
-	--response_fn Data/resp_vars/cardio_respns_vars.csv \
-	--delimeter , \
-	--pred_path Data/diet/d1_food_g_2015.csv \
-	--out_folder diet_test \
-	--output_label food_grams \
-	--title food_grams
-
-python lib/scripts/ml/rf_resp_df.py \
-	--response_fn Data/resp_vars/cardio_respns_vars.csv \
-	--delimeter , \
 	--pred_path Data/diet/d1_nutri_food_g_2015.csv \
 	--out_folder diet_test \
 	--output_label nutr_food_grams \
 	--title nutri_food_grams
-
 """
 
 # --------------------------------------------------------------------------
@@ -152,9 +135,9 @@ pred_df = pd.read_csv(os.path.join(".",options.pred_table), \
 print(pred_df)
 pred_df = pred_df.sort_values(by = id_var)
 id_list = response_df.loc[:,id_var]
-print("PRED")
-print(len(list(response_df.index)))
-print(pred_df.loc[:,id_var])
+# print("PRED")
+# print(len(list(response_df.index)))
+# print(pred_df.loc[:,id_var])
 
 seed = 7
 
@@ -209,28 +192,13 @@ with open(result_fpath, "w+") as fl:
 					print(f"going to RandomForestRegressor(), {m_c}")
 					clf = RandomForestRegressor(n_estimators=n_trees)
 					clf.fit(pred_train, resp_train)
-					resp_pred = clf.predict(pred_test)
-					# print(clf.feature_importances_[1:10])
-					# print(clf.feature_names_in_[1:10])
 					print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
 					feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
-					resp_pred = clf.predict(pred_test)
-					# my_score = r2_score(resp_test, resp_pred, sample_weight=None)
+					modl_predict = clf.predict(pred_test)
+					# my_score = r2_score(resp_test, modl_predict, sample_weight=None)
 					my_score = clf.score(pred_test, resp_test, sample_weight=None)
 					my_accuracy.append(my_score)
 					# print(my_accuracy)
-
-					# print('Mean Absolute Error (MAE):', metrics.mean_absolute_error(y_true, y_pred))
-					# print('Mean Squared Error (MSE):', metrics.mean_squared_error(y_true, y_pred))
-					# print('Root Mean Squared Error (RMSE):', metrics.mean_squared_error(y_true, y_pred, squared=False))
-					# print('Mean Absolute Percentage Error (MAPE):', metrics.mean_absolute_percentage_error(y_true, y_pred))
-					# print('Explained Variance Score:', metrics.explained_variance_score(y_true, y_pred))
-					# print('Max Error:', metrics.max_error(y_true, y_pred))
-					# print('Mean Squared Log Error:', metrics.mean_squared_log_error(y_true, y_pred))
-					# print('Median Absolute Error:', metrics.median_absolute_error(y_true, y_pred))
-					# print('R^2:', metrics.r2_score(y_true, y_pred))
-					# print('Mean Poisson Deviance:', metrics.mean_poisson_deviance(y_true, y_pred))
-					# print('Mean Gamma Deviance:', metrics.mean_gamma_deviance(y_true, y_pred))
 				else:
 					print("going to RandomForestClassifier()")
 					clf = RandomForestClassifier(n_estimators=n_trees)
@@ -238,10 +206,9 @@ with open(result_fpath, "w+") as fl:
 					clf.fit(pred_train, resp_train)
 					print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
 					feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
-					resp_pred = clf.predict(pred_test)
-					predictions.extend(clf.predict(pred_test))
+					modl_predict = clf.predict(pred_test)
+					predictions.extend(modl_predict)
 					responses.extend(resp_test)
-					# my_score = r2_score(resp_test, resp_pred, sample_weight=None)
 					my_score = clf.score(pred_test, resp_test, sample_weight=None)
 					my_accuracy.append(my_score)
 
@@ -251,6 +218,7 @@ with open(result_fpath, "w+") as fl:
 			print(msg, flush=True)
 			fl.write(msg)
 			feature_df = pd.DataFrame(feature_rows)
+			# Order the features by importance
 			feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
 			feature_df.to_csv(os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv"))
 			feature_mean = feature_df.mean(axis=0)
