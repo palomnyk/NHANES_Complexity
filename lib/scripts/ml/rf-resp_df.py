@@ -230,16 +230,20 @@ with open(result_fpath, "w+") as fl:
 				plt.title(f"Mean accuracy: {round(np.mean(my_accuracy), 3)}")
 				plt.suptitle(f"{options.title}, {meta_c}")
 				pdf.savefig(bbox_inches='tight')
-				plt.clf()
+				plt.close()
 				print("making confusion matrix")
 				# my_score = clf.score(predictions, responses, sample_weight=None)
-				cnf_matrix = confusion_matrix(responses, predictions)
+				my_labels = [str(b) for b in set(responses + predictions)]
+				print(my_labels)
+				cnf_matrix = confusion_matrix(responses, predictions, labels = my_labels)
+				print(len(set(responses)))
+				print(len(set(predictions)))
 				print(str(cnf_matrix))
 				disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix,
-								  display_labels=clf.classes_).plot()
+								  display_labels=my_labels).plot()
 				plt.title(f"{options.title}, {meta_c}")
 				pdf.savefig(bbox_inches='tight')
-				plt.clf()
+				plt.close()
 
 			else:
 				print("else")
