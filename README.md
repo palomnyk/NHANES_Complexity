@@ -1,4 +1,4 @@
-# NHANES_Complexityd
+# NHANES_Complexity
 
 ##Developer notes
 FNDDS for food codes can be found here: https://www.ars.usda.gov/northeast-area/beltsville-md-bhnrc/beltsville-human-nutrition-research-center/food-surveys-research-group/docs/dmr-food-categories/
