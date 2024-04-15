@@ -10,7 +10,8 @@ if (!requireNamespace("readxl", quietly = TRUE)) BiocManager::install("readxl")
 library("readxl")
 if (!requireNamespace("ggplot2", quietly = TRUE)) BiocManager::install("ggplot2")
 library("ggplot2")
-
+if (!requireNamespace("optparse", quietly = TRUE)) BiocManager::install("optparse")
+library("optparse")
 
 print("Loaded dependencies")
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
@@ -75,8 +76,20 @@ plot_data <- function (df_table, f_column = "org_method", title_text){
   return(g)
 }
 
+#### Parse commandline arguements ####
+option_list <- list(
+  optparse::make_option(c("-o", "--out_subdir"), type="character", 
+                        default=file.path("diet_test"), 
+                        help="dataset dir path")
+);
+opt_parser <- optparse::OptionParser(option_list=option_list);
+opt <- parse_args(opt_parser);
+
+print("Commandline arguments:")
+print(opt)
+
 #### Establish directory layout and other constants ####
-output_dir <- file.path("output", "diet_test")
+output_dir <- file.path("output", opt$out_subdir)
 
 numeric_only <- c("Total Cholesterol (mg/dL","Triglyceride (mg/dL", 
                   "LDL-cholesterol (mg/dL","Direct HDL-Cholesterol (mg/dL",
