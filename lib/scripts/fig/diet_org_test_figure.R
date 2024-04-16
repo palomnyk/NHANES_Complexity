@@ -155,10 +155,10 @@ resp_vars_plot(big_table, "Nutrition data organization strategies NO TRIG")
 
 num_table <- big_table[!(big_table$response_var %in% numeric_only),]
 org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG CAT ONLY")
-org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG CAT ONLY")
+resp_vars_plot(num_table, "Nutrition data organization strategies NO TRIG CAT ONLY")
 
 num_table <- big_table[big_table$response_var %in% numeric_only,]
 org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
-org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
+resp_vars_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
 
 dev.off()
