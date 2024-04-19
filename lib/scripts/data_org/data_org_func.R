@@ -42,7 +42,9 @@ download_org_nhanes <- function(dt_group, nh_tble) {
                                       data = dl_tble)
   
   dl_tble <- nhanes_names(dl_tble, dt_group, nh_tble)
-  attr(dl_tble, "names") <- sub("[[:punct:]]$", "", names(dl_tble))
+  attr(dl_tble, "names") <- gsub("[[:punct:]]$", "", names(dl_tble))
+  attr(dl_tble, "names") <- gsub("[\r\n]", "", names(dl_tble))
+  attr(dl_tble, "names") <- gsub("[-]", " ", names(dl_tble))
   return(dl_tble)
 }
 
