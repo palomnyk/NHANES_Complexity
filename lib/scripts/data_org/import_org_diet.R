@@ -1,5 +1,3 @@
-
-#keep only adults
 # Author: Aaron Yerke (aaronyerke@gmail.com)
 # Script for importing and organizing dietary data
 # https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html
@@ -15,8 +13,6 @@
 #   a. alone (8) and with nutrients (9)
 # G. Category grams + food grams + nutrient (10)
 # H. Category simple + food simple + nutrient (11)
-#     
-
   
 rm(list = ls()) #clear workspace
 
@@ -55,25 +51,19 @@ adult_seqn <- demo_2015[,id_var][
 print(paste("Number of participants:", nrow(demo_2015)))
 print(paste("Number of adults:", length(adult_seqn)))
 #### Organize diet data, only individual foods first ####
-# d1_diet_2015 <- download_org_nhanes("DIET", "DR1IFF_I")
-d1_diet_2015 <- nhanesA::nhanes("DR1IFF_I")
-d1_diet_2015 <- nhanesA::nhanesTranslate(nh_table = "DR1IFF_I",
-                                  data = d1_diet_2015,
-                                  details = TRUE,
-                                  colnames = names(d1_diet_2015))
-d1_diet_2015 <- nhanes_names(d1_diet_2015,"DIET", "DR1IFF_I")
-attr(d1_diet_2015, "names") <- sub("[[:punct:]]$", "", names(d1_diet_2015))
+d1_diet_2015 <- download_org_nhanes("DIET", "DR1IFF_I")
 # Day 2 diet
-d2_diet_2015 <- nhanesA::nhanes("DR1IFF_I")
-d2_diet_2015 <- nhanesA::nhanesTranslate(nh_table = "DR2IFF_I",
-                                         data = d2_diet_2015,
-                                         details = TRUE,
-                                         colnames = names(d2_diet_2015))
-d2_diet_2015 <- nhanes_names(d2_diet_2015,"DIET", "DR1IFF_I")
-attr(d2_diet_2015, "names") <- sub("[[:punct:]]$", "", names(d2_diet_2015))
+d2_diet_2015 <- download_org_nhanes("DIET", "DR2IFF_I")
+
+setdiff(names(d1_diet_2015), names(d2_diet_2015))
+setdiff(names(d2_diet_2015), names(d1_diet_2015))
 
 #combine d1 and d2
 d1d2_diet_2015 <- rbind(d1_diet_2015, d2_diet_2015)
+
+print(paste("nrow ncol d1:", nrow(d1_diet_2015), ncol(d1_diet_2015)))
+print(paste("nrow ncol d2:", nrow(d2_diet_2015), ncol(d2_diet_2015)))
+print(paste("nrow ncol d1d2:", nrow(d1d2_diet_2015), ncol(d1d2_diet_2015)))
 
 #keep only adults
 d1d2_diet_2015 <- d1d2_diet_2015[d1d2_diet_2015[,id_var] %in% adult_seqn, ]
@@ -123,7 +113,6 @@ write.csv(USDA_food_simple, file = file.path(output_dir, "d1d2_food_2015.csv"),
 nutri_food_simple <- merge(USDA_food_simple, nutr_d1d2_diet_2015, by = id_var)
 write.csv(nutri_food_simple, file = file.path(output_dir, "d1d2_nutri_food_2015.csv"),
           row.names = FALSE)
-
 # d1_tot_diet_2015 <- download_org_nhanes(dt_group = "DIET", nh_tble = "DR1TOT_I")
 
 #### Food categories ####
@@ -166,3 +155,5 @@ write.csv(nutri_food_g_cat_g, file = file.path(output_dir, "d1d2_nutri_food_g_ca
 nutri_food_cat <- merge(nutri_food_simple, USDA_food_simple)
 write.csv(nutri_food_cat, file = file.path(output_dir, "d1d2_nutri_food_cat_2015.csv"),
           row.names = FALSE)
+
+print("End R script.")
