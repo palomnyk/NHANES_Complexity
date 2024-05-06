@@ -53,7 +53,7 @@ convert_dummy <- function(df){
     if (is.factor(x) | is.character(x)){
       if(length(unique(x)) > 3){
         return(fastDummies::dummy_cols(x, remove_selected_columns = TRUE,
-                                       ignore_na = TRUE, remove_first_dummy = TRUE,
+                                       ignore_na = TRUE,
                                        remove_most_frequent_dummy = TRUE))
       }else{
         return(fastDummies::dummy_cols(x, remove_selected_columns = TRUE,
