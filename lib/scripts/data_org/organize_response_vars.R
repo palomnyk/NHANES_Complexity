@@ -73,9 +73,9 @@ for (i in 1:nrow(import_tables)){
 #### Remove participants that are taking medication for their condition ####
 rxq_2015 <- download_org_nhanes(dt_group = "Q",
                                  nh_tble = "RXQ_RX_I")
-rxq_2015$all_descr <- paste(rxq_2015$`ICD-10-CM code 1 description`,
-                            rxq_2015$`ICD-10-CM code 2 description`,
-                            rxq_2015$`ICD-10-CM code 3 description`, sep = "")
+rxq_2015$all_descr <- paste(rxq_2015$`ICD 10 CM code 1 description`,
+                            rxq_2015$`ICD 10 CM code 2 description`,
+                            rxq_2015$`ICD 10 CM code 3 description`, sep = "")
 
 rxq_2015$no_bp_med <- !grepl("hyperten",rxq_2015$all_descr, ignore.case = TRUE)
 
@@ -87,7 +87,9 @@ test <- grepl("triglyc",rxq_2015$all_descr, ignore.case = TRUE)
 print(paste("any triglyceride medicine:", any(test == T)))
 
 rxq_2015 <- aggregate(rxq_2015, by = list(rxq_2015$`Respondent sequence number`),
-                  FUN = sum)
+                      FUN = sum)
+
+
 rxq_2015$`Respondent sequence number` = rxq_2015$Group.1
 
 rxq_2015$no_bp_med <- as.logical(rxq_2015$no_bp_med)
