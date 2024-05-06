@@ -28,16 +28,12 @@ library("readxl")
 if (!requireNamespace("fastDummies", quietly = TRUE)) BiocManager::install("fastDummies")
 library("fastDummies")
 
-
 print("Loaded packages")
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 
 #### Establish directory layout and other constants ####
 output_dir <- file.path("Data", "diet")
 dir.create(output_dir)
-# drop_criteria <- c("Dietary recall status" = c("Reported consuming breast-milk"),#DEMO_I
-#                    ""
-# )
 
 #### Loading in data ####
 food_codes <- readxl::read_excel(file.path("Data", "diet", "WWEIA1516_foodcat_FNDDS.xlsx"), 
