@@ -149,6 +149,15 @@ pdf(file.path(output_dir, "graphics", "all_diet_orgs.pdf"), width = 18, height =
 org_meth_plot(big_table, "Nutrition data org strategies full result")
 resp_vars_plot(big_table, "Nutrition data org strategies full result")
 
+
+num_table <- big_table[!(big_table$response_var %in% numeric_only),]
+org_meth_plot(num_table, "Nutrition data organization strategies CAT ONLY")
+resp_vars_plot(num_table, "Nutrition data organization strategies CAT ONLY")
+
+num_table <- big_table[big_table$response_var %in% numeric_only,]
+org_meth_plot(num_table, "Nutrition data organization strategies NUM ONLY")
+resp_vars_plot(num_table, "Nutrition data organization strategies NUM ONLY")
+
 big_table <- big_table[ ! grepl("trig", big_table$response_var, ignore.case = TRUE), ]
 org_meth_plot(big_table, "Nutrition data organization strategies NO TRIG")
 resp_vars_plot(big_table, "Nutrition data organization strategies NO TRIG")
