@@ -166,7 +166,7 @@ with open(result_fpath, "w+") as fl:
 		m_c = meta_c
 		print(m_c)
 		resp_safe_ids = response_df.loc[response_df[m_c].notna(), id_var]
-		pred_safe_ids = pred_df.loc[response_df[m_c].notna(), id_var]
+		pred_safe_ids = pred_df.loc[pred_df[m_c].notna(), id_var]
 		intersect_safe_ids = list(set(resp_safe_ids) & set(pred_safe_ids))
 		print(f"num safe ids {len(resp_safe_ids)}")
 		print(resp_safe_ids)
@@ -233,14 +233,15 @@ with open(result_fpath, "w+") as fl:
 				plt.close()
 				print("making confusion matrix")
 				# my_score = clf.score(predictions, responses, sample_weight=None)
-				my_labels = [str(b) for b in set(responses + predictions)]
-				print(my_labels)
-				cnf_matrix = confusion_matrix(responses, predictions, labels = my_labels)
-				print(len(set(responses)))
-				print(len(set(predictions)))
+				# predictions = [str(b) for b in predictions]
+				# responses = [str(b) for b in responses]
+				# my_labels = list(set(responses + predictions))
+				# print(my_labels)
+				# print(predictions)
+				# print(responses)
+				cnf_matrix = confusion_matrix(responses, predictions)
 				print(str(cnf_matrix))
-				disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix,
-								  display_labels=my_labels).plot()
+				disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix).plot()
 				plt.title(f"{options.title}, {meta_c}")
 				pdf.savefig(bbox_inches='tight')
 				plt.close()
