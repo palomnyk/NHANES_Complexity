@@ -76,6 +76,9 @@ parser.add_argument("-i", "--meta_index_col", default=0,
 parser.add_argument("-t", "--title", default=False,
                   help="Title for visualizations",
                   metavar="title", dest="title")
+parser.add_argument("-v", "--id_var", default="Respondent sequence number",
+                  help="String, column name of row variables",
+                  metavar="id_var", dest="id_var")
 
 options, unknown = parser.parse_known_args()
 
@@ -119,25 +122,19 @@ col_names = col_names + [f"split{x}" for x in range(num_cv_folds)]
 pdf_fpath = os.path.join(output_dir, "graphics", f"bp_{output_label}_feature_importance.pdf")
 sum_pdf_fpath = os.path.join(output_dir, "graphics", f"sum_{output_label}_.pdf")
 algo_table_fpath = os.path.join(output_dir, "tables", f"algo_{output_label}_.csv")
-id_var = "Respondent sequence number"
 if options.title == False:
 	options.title == options.output_label
 
-# response_cols = ["Systolic:  Blood pressure (first reading) mm Hg", "Diastolic:  Blood pressure (first reading) mm Hg"]#TODO: FIX THIS
-# response_cols = ["Systolic:  Blood pressure (first reading) mm Hg", "Systolic_Hypertension", "Diastolic:  Blood pressure (first reading) mm Hg", "Diastolic_Hypertension"]#TODO: FIX THIS
 response_df = pd.read_csv(os.path.join(".",options.resp_fn), \
 		sep=",", header=0).replace("TRUE", True).replace("FALSE", False)
 print(response_df.columns)
 response_cols = response_df.columns
-response_df = response_df.sort_values(by = id_var)
+response_df = response_df.sort_values(by = options.id_var)
 pred_df = pd.read_csv(os.path.join(".",options.pred_table), \
-		sep=",", header=0).fillna(0)
+		sep=",", header=0, index_col=options.id_var).fillna(0)
 print(pred_df)
-pred_df = pred_df.sort_values(by = id_var)
-id_list = response_df.loc[:,id_var]
-# print("PRED")
-# print(len(list(response_df.index)))
-# print(pred_df.loc[:,id_var])
+pred_df = pred_df.sort_values(by = options.id_var)
+id_list = response_df.loc[:,options.id_var]
 
 seed = 7
 
@@ -165,9 +162,8 @@ with open(result_fpath, "w+") as fl:
 	for meta_c in response_cols:
 		m_c = meta_c
 		print(m_c)
-		resp_safe_ids = response_df.loc[response_df[m_c].notna(), id_var]
-		pred_safe_ids = pred_df.loc[pred_df[m_c].notna(), id_var]
-		intersect_safe_ids = list(set(resp_safe_ids) & set(pred_safe_ids))
+		resp_safe_ids = response_df.loc[response_df[m_c].notna(), options.id_var]
+		intersect_safe_ids = list(set(resp_safe_ids) & set(pred_df.index))
 		print(f"num safe ids {len(resp_safe_ids)}")
 		print(resp_safe_ids)
 		for name, model in models:
@@ -182,11 +178,11 @@ with open(result_fpath, "w+") as fl:
 				print(f"train: {len(train)}, test: {len(test)}")
 				train = [intersect_safe_ids[x] for x in train]
 				test = [intersect_safe_ids[x] for x in test]
-				pred_train = pred_df[pred_df[id_var].isin(train)].drop(id_var, axis = 1)#selects whole dataframe
-				pred_test = pred_df[pred_df[id_var].isin(test)].drop(id_var, axis = 1)
+				pred_train = pred_df[pred_df.index.isin(train)]#selects whole dataframe
+				pred_test = pred_df[pred_df.index.isin(test)]
 				print(pred_train.shape)
-				resp_train = response_df.loc[ response_df[id_var].isin(train).tolist() , m_c].convert_dtypes()
-				resp_test = response_df.loc[ response_df[id_var].isin(test).tolist() , m_c].convert_dtypes()
+				resp_train = response_df.loc[ response_df[options.id_var].isin(train).tolist() , m_c].convert_dtypes()
+				resp_test = response_df.loc[ response_df[options.id_var].isin(test).tolist() , m_c].convert_dtypes()
 				print(f"len resp_train {len(resp_train)}, {resp_train.dtype}")
 				if is_numeric_dtype(resp_train) and resp_train.dtype.name != "boolean":
 					print(f"going to RandomForestRegressor(), {m_c}")
