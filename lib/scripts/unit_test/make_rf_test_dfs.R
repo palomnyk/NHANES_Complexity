@@ -40,7 +40,7 @@ mpg_df$`Respondent sequence number` <- row.names(mpg_df)
 # 	--response_fn Data/unit_test/mtc_response.csv \
 # 	--delimeter , \
 # 	--pred_path Data/unit_test/mtc_predictor.csv \
-# 	--out_folder diet_test \
+# 	--out_folder unit_test \
 # 	--output_label unit_test_rf \
 # 	--title mtcars
 
