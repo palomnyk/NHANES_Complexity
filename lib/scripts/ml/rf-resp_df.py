@@ -10,7 +10,6 @@ print("Loading external libraries.",flush = True)
 from cProfile import label
 import math
 import os, sys
-from matplotlib import markers
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
@@ -178,8 +177,8 @@ with open(result_fpath, "w+") as fl:
 				print(f"train: {len(train)}, test: {len(test)}")
 				train = [intersect_safe_ids[x] for x in train]
 				test = [intersect_safe_ids[x] for x in test]
-				pred_train = pred_df[pred_df.index.isin(train)]#selects whole dataframe
-				pred_test = pred_df[pred_df.index.isin(test)]
+				pred_train = pred_df.loc[pred_df.index.isin(train),:]#selects whole dataframe
+				pred_test = pred_df.loc[pred_df.index.isin(test),:]
 				print(pred_train.shape)
 				resp_train = response_df.loc[ response_df[options.id_var].isin(train).tolist() , m_c].convert_dtypes()
 				resp_test = response_df.loc[ response_df[options.id_var].isin(test).tolist() , m_c].convert_dtypes()
