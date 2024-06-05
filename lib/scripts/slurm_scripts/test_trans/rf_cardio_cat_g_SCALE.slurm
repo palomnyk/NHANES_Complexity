@@ -1,7 +1,6 @@
 #!/bin/bash
 
-##SBATCH --partition=Pisces                             # Partition/queue requested on server
-#SBATCH --job-name=rf_nutri_only                        # Job name
+#SBATCH --job-name=rf_cat_grams_SCALE                     # Job name
 #SBATCH --time=24:00:00                                 # Time limit (hrs:min:sec)
 #SBATCH --nodes=1                                       # Number of nodes requested
 #SBATCH --ntasks-per-node=1                          		# Number of CPUs (processor cores/tasks)
@@ -10,7 +9,6 @@
 #SBATCH --mail-user=aaron.yerke@usda.gov                # Specified email address
 #SBATCH --output=./slurmLogs/%x.%j.log                  # Set directory for standard output
 #SBATCH --error=./slurmLogs/%x.%j.log                   # Set directory for error log
-
 
 ### Display the job context
 echo Job: $SLURM_JOB_NAME with ID $SLURM_JOB_ID
@@ -24,10 +22,10 @@ python --version
 python lib/scripts/ml/rf-resp_df.py \
 	--response_fn Data/respns_vars/cardio_respns_vars.csv \
 	--delimeter , \
-	--pred_path Data/diet/d1d2_nutr_only_2015.csv \
-	--out_folder diet_test_d1d2 \
-	--output_label nutri_only_d1d2 \
-	--title nutri_only
+	--pred_path Data/diet/d1d2_cat_g_2015_SCALE.csv \
+	--out_folder diet_test_d1d2_trans \
+	--output_label cat_grams_d1d2_SCALE \
+	--title cat_grams_SCALE
 
 echo ""
 echo "======================================================"

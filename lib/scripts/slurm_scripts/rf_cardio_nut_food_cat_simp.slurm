@@ -10,7 +10,7 @@
 #SBATCH --mail-user=aaron.yerke@usda.gov                # Specified email address
 #SBATCH --output=./slurmLogs/%x.%j.log                  # Set directory for standard output
 #SBATCH --error=./slurmLogs/%x.%j.log                   # Set directory for error log
-#SBATCH --get-user-env
+
 
 ### Display the job context
 echo Job: $SLURM_JOB_NAME with ID $SLURM_JOB_ID
@@ -19,19 +19,14 @@ echo Using $SLURM_NTASKS processors across $SLURM_NNODES nodes
 
 module purge  # clear module environment
 module load miniconda  # load miniconda
-conda init bash
-python --version
-conda deactivate
-python --version
-conda activate python_ml_conda
 source activate python_ml_conda
 python --version
 python lib/scripts/ml/rf-resp_df.py \
 	--response_fn Data/respns_vars/cardio_respns_vars.csv \
 	--delimeter , \
 	--pred_path Data/diet/d1d2_nutri_food_cat_2015.csv \
-	--out_folder diet_test \
-	--output_label nutr_food_cat_simp \
+	--out_folder diet_test_d1d2 \
+	--output_label nutr_food_cat_simp_d1d2 \
 	--title nutr_food_cat_simp
 
 echo ""
