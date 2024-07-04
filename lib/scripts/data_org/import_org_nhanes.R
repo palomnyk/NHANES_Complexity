@@ -1,6 +1,10 @@
 # Author: Aaron Yerke (aaronyerke@gmail.com)
 # Script for importing and organizing data
 # https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html
+# Usage:
+# Rscript lib/scripts/data_org/import_org_nhanes.R\
+#   --output_prefix diet_\
+#   --input_table Data/diet_nhanesTablesToAdd.csv
 
 rm(list = ls()) #clear workspace
 
@@ -10,10 +14,27 @@ if (!requireNamespace("nhanesA", quietly = TRUE)) BiocManager::install("nhanesA"
 library("nhanesA")
 if (!requireNamespace("reshape2", quietly = TRUE)) BiocManager::install("reshape2")
 library("reshape2")
+if (!requireNamespace("optparse", quietly = TRUE)) BiocManager::install("optparse")
+library("optparse")
 
-print("Loaded dependencies")
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 
+print("Loaded dependencies")
+
+#### Read commandline arguements ####
+option_list <- list(
+  optparse::make_option(c("-p", "--output_prefix"), type="character", default="", 
+                        help="prefix for output", metavar="character"),
+  optparse::make_option(c("-i", "--input_table"), type="character",
+                        default=file.path("Data", "nhanesTablesToAdd.csv"),
+                        help="relative path, needs to be comma seperated with header",
+                        metavar="character")
+);
+opt_parser <- optparse::OptionParser(option_list=option_list);
+opt <- parse_args(opt_parser);
+
+print(opt)
+print("Done reading cml arguments")
 #### Establish directory layout and other constants ####
 output_dir <- file.path("Data", "nhanesA_tables")
 dir.create(output_dir)
@@ -21,7 +42,7 @@ id_var <- "Respondent sequence number"
 cor_thresh <- 0.9
 
 #### Loading in data ####
-import_tables <- read.csv(file.path("Data", "nhanesTablesToAdd.csv"),
+import_tables <- read.csv(file.path(opt$input_table),
                           header = T, sep = ",", comment.char = "#")
 print(table(import_tables$data_group))
 short_col_name <- c()
@@ -89,7 +110,7 @@ codebook <- data.frame(short_col_name,
                        nh_table_name,
                        year)
 
-write.csv(codebook, file = file.path(output_dir, "comb_NHANES_summary.csv"),
+write.csv(codebook, file = file.path(output_dir, paste0(opt$output_prefix, "comb_NHANES_summary.csv")),
           row.names = FALSE)
 
 no_var <- vapply(full_df, function(x) length(unique(x)) == 1, logical(1L))
@@ -119,12 +140,13 @@ melted_cormat <- melt(upper_tri, na.rm = TRUE)
 over_cor <- subset(melted_cormat, melted_cormat$Var1 != melted_cormat$Var2)
 over_cor <- subset(over_cor, value > cor_thresh)
 
-write.csv(over_cor, file = file.path(output_dir, paste0("over_cor_",cor_thresh,"_combined_NHANES_dum.csv")),
+write.csv(over_cor, 
+          file = file.path(output_dir, paste0(opt$output_prefix,"over_cor_",cor_thresh,"_combined_NHANES_dum.csv")),
           row.names = FALSE)
 
 full_df <- full_df[, !colnames(full_df) %in% over_cor$Var2] #drop highly correlated variables
 
-write.csv(full_df, file = file.path(output_dir, "combined_NHANES_dum.csv"),
+write.csv(full_df, file = file.path(output_dir, paste0(opt$output_prefix, "combined_NHANES_dum.csv")),
           row.names = FALSE)
 
 print("End R script.")
