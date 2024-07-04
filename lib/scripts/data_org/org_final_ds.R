@@ -1,5 +1,9 @@
 # Author: Aaron Yerke (aaronyerke@gmail.com)
 # Script for combining dietary data with other datasets
+# Usage:
+# Rscript lib/scripts/data_org/org_final_ds.R\
+#   --output_prefix diet_\
+#   --input_table Data/diet_combined_NHANES_dum.csv
 
 rm(list = ls()) #clear workspace
 
@@ -17,8 +21,27 @@ library("fastDummies")
 if (!requireNamespace("reshape2", quietly = TRUE)) BiocManager::install("reshape2")
 library("reshape2")
 
-print("Loaded packages")
+if (!requireNamespace("optparse", quietly = TRUE)) BiocManager::install("optparse")
+library("optparse")
+
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
+
+print("Loaded dependencies")
+
+#### Read commandline arguements ####
+option_list <- list(
+  optparse::make_option(c("-p", "--output_prefix"), type="character", default="", 
+                        help="prefix for output", metavar="character"),
+  optparse::make_option(c("-i", "--input_table"), type="character",
+                        default=file.path("Data", "nhanesA_tables", "combined_NHANES_dum.csv"),
+                        help="relative path, needs to be comma seperated with header",
+                        metavar="character")
+);
+opt_parser <- optparse::OptionParser(option_list=option_list);
+opt <- parse_args(opt_parser);
+
+print(opt)
+print("Done reading cml arguments")
 
 #### Establish directory layout and other constants ####
 output_dir <- file.path("Data")
@@ -54,12 +77,14 @@ melted_cormat <- melt(upper_tri, na.rm = TRUE)
 over_cor <- subset(melted_cormat, melted_cormat$Var1 != melted_cormat$Var2)
 over_cor <- subset(over_cor, value > cor_thresh)
 
-write.csv(over_cor, file = file.path(output_dir, paste0("over_cor_",cor_thresh,"_final_all.csv")),
+write.csv(over_cor, file = file.path(output_dir,
+                                     paste0(opt$output_prefix,"over_cor_",cor_thresh,"_final_all.csv")),
           row.names = FALSE)
 
 final_table <- final_table[, !colnames(final_table) %in% over_cor$Var2] #drop highly correlated variables
 
-write.csv(final_table, file = file.path(output_dir, "diet_supp_combined_NHANES.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir,
+                    paste0(opt$output_prefix,"diet_supp_combined_NHANES"),
+                    final_table)
 
 print("End of R script.")
