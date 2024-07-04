@@ -1,0 +1,6 @@
+﻿year_start,year_end,d1_diet,d2_diet,code_table,code_mod_table,demo,age_col,wweia_cats
+2009,2010,DR1IFF_F,DR2IFF_F,DRXFCD_F,DRXMCD_F,DEMO_F,Best age in years of the sample person at time of HH screening.  Individuals 80 and over are topcoded at 80 years of age,
+2011,2012,DR1IFF_G,DR2IFF_G,DRXFCD_G,,DEMO_G,Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age,
+2013,2014,DR1IFF_H,DR2IFF_H,DRXFCD_H,,DEMO_H,Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age,
+2015,2016,DR1IFF_I,DR2IFF_I,DRXFCD_I,,DEMO_I,Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age,
+2017,2020,P_DR1IFF,P_DR2IFF,DRXFCD_J,,P_DEMO,Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age,
