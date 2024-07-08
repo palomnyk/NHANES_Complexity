@@ -26,7 +26,7 @@ option_list <- list(
   optparse::make_option(c("-p", "--output_prefix"), type="character", default="", 
                         help="prefix for output", metavar="character"),
   optparse::make_option(c("-i", "--input_table"), type="character",
-                        default=file.path("Data", "nhanesTablesToAdd.csv"),
+                        default=file.path("lib", "datasets", "nhanesTablesToAdd.csv"),
                         help="relative path, needs to be comma seperated with header",
                         metavar="character")
 );
