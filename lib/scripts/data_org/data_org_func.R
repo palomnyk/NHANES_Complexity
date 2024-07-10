@@ -27,7 +27,7 @@ nhanes_names <- function(dl_df, dt_group, nh_tble) {
   return(dl_df)
 }
 
-download_org_nhanes <- function(dt_group, nh_tble) {
+download_org_nhanes <- function(dt_group, nh_tble, translate = TRUE) {
   #downloads and relabels table
   if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
   if (!requireNamespace("nhanesA", quietly = TRUE)) BiocManager::install("nhanesA")
@@ -36,16 +36,32 @@ download_org_nhanes <- function(dt_group, nh_tble) {
   dl_tble <- nhanesA::nhanes(nh_tble)
   # print(dl_tble)
   # dl_tble <- dl_tble[,sapply(dl_tble, function(x) !all(is.na(x)))]
-  dl_tble <- nhanesA::nhanesTranslate(nh_table = nh_tble,
-                                      details = TRUE,
-                                      colnames = names(dl_tble),
-                                      data = dl_tble)
+  if (translate == TRUE){
+    dl_tble <- nhanesA::nhanesTranslate(nh_table = nh_tble,
+                                        details = TRUE,
+                                        colnames = names(dl_tble),
+                                        data = dl_tble)
+  }
   
   dl_tble <- nhanes_names(dl_tble, dt_group, nh_tble)
   attr(dl_tble, "names") <- gsub("[[:punct:]]$", "", names(dl_tble))
   attr(dl_tble, "names") <- gsub("[\r\n]", "", names(dl_tble))
   attr(dl_tble, "names") <- gsub("[-]", " ", names(dl_tble))
   return(dl_tble)
+}
+
+nhanes_dl_save_if_not_local <- function(f_path, dt_grp, nh_tbl, translate = TRUE) {
+  if (!file.exists(f_path)){
+    print(paste(f_path, "not found - Downloading!"))
+    dl_tabl <- download_org_nhanes(dt_group = dt_grp,
+                                   nh_tble = nh_tbl,
+                                   translate = translate)
+    write.csv(dl_tabl, f_path, row.names = FALSE)
+    Sys.sleep(2)
+  }else{
+    dl_tabl <- read.csv(f_path, header = TRUE, check.names = FALSE)
+  }
+  return(dl_tabl)
 }
 
 convert_dummy <- function(df){

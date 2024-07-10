@@ -18,19 +18,6 @@ library("fastDummies")
 print("Loaded packages")
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 
-nhanes_dl_save_if_not_local <- function(f_path, dt_grp, nh_tbl) {
-  if (!file.exists(f_path)){
-    print(paste(f_path, "not found - Downloading!"))
-    dl_tabl <- download_org_nhanes(dt_group = dt_grp,
-                                     nh_tble = nh_tbl)
-    write.csv(dl_tabl, f_path, row.names = FALSE)
-    Sys.sleep(2)
-  }else{
-    dl_tabl <- read.csv(f_path, header = TRUE, check.names = FALSE)
-  }
-  return(dl_tabl)
-}
-
 #### Establish directory layout and other constants ####
 in_dir <- file.path("lib", "datasets")
 output_dir <- file.path("Data", "diet", "multi_year")
