@@ -67,20 +67,20 @@ BPXSY3,Systolic: Blood pres (3rd rdg) mm Hg,2015,2016,EXAM,BPX_I,Blood Pressure,
 BPXDI3,Diastolic: Blood pres (3rd rdg) mm Hg,2015,2016,EXAM,BPX_I,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,RXQ_RX_I
 BPXSY4,Systolic: Blood pres (4th rdg) mm Hg,2015,2016,EXAM,BPX_I,Blood Pressure,130,>=,High Blood Pressure  | American Heart Association,,,RXQ_RX_I
 BPXDI4,Diastolic: Blood pres (4th rdg) mm Hg,2015,2016,EXAM,BPX_I,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,RXQ_RX_I
-LBXTC,Total Cholesterol (mg/dL),2017,2020,LAB,P_TCHOL,Cholesterol - Total,200,>=,Cholesterol: Understanding Levels and Numbers (clevelandclinic.org),,The total cholesterol in mg/dL (LBXTC) was converted to mmol/L (LBDTCSI) by multiplying by 0.02586.,
-#LBDTCSI,Total Cholesterol (mmol/L),2017,2020,LAB,P_TCHOL,Cholesterol - Total,,,,,,
-#WTSAF2YR,Fasting Subsample 2 Year MEC Weight,2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,,,,,Triglycerides were measured in a fasting subsample of participants 12 years and older. Special sample weights are required to analyze these data properly.,
-LBXTR,Triglyceride (mg/dL),2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,150,>=,Triglycerides: Levels & Normal Range (clevelandclinic.org),,The triglycerides value in mg/dL (LBXTR) was converted to mmol/L (LBDTRSI) by multiplying by 0.01129.,
-#LBDTRSI,Triglyceride (mmol/L),2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,,,,,The calculation is valid for triglycerides less than or equal to 400 mg/dL.,
-LBDLDL,LDL-cholesterol (mg/dL),2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,100,>=,Cholesterol: Understanding Levels and Numbers (clevelandclinic.org),,[LDL-cholesterol] = [total cholesterol] – [HDL-cholesterol] – [triglycerides/5],
-#LBDLDLSI,LDL-cholesterol (mmol/L),2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,,,,,The LDL-cholesterol in mg/dL (LBDLDL) was converted to mmol/L (LBDLDLSI) by multiplying by 0.02586.,
-LBDHDD,Direct HDL-Cholesterol (mg/dL),2017,2020,LAB,P_HDL,Cholesterol - High-Density Lipoprotein (HDL),60,<,Cholesterol: Understanding Levels and Numbers (clevelandclinic.org),,,
-#LBDHDDSI,Direct HDL-Cholesterol (mmol/L),2017,2020,LAB,P_HDL,Cholesterol - High-Density Lipoprotein (HDL),,,,,,
-BPXOSY1,Systolic: Blood pres (1st rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,130,>=,High Blood Pressure  | American Heart Association,,,
-BPXODI1,Diastolic: Blood pres (1st rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,
-BPXOSY2,Systolic: Blood pres (2nd rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,130,>=,High Blood Pressure  | American Heart Association,,,
-BPXODI2,Diastolic: Blood pres (2nd rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,
-BPXOSY3,Systolic: Blood pres (3rd rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,130,>=,High Blood Pressure  | American Heart Association,,,
-BPXODI3,Diastolic: Blood pres (3rd rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,
-BPXOSY4,Systolic: Blood pres (4th rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,130,>=,High Blood Pressure  | American Heart Association,,,
-BPXODI4,Diastolic: Blood pres (4th rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,
+LBXTC,Total Cholesterol (mg/dL),2017,2020,LAB,P_TCHOL,Cholesterol - Total,200,>=,Cholesterol: Understanding Levels and Numbers (clevelandclinic.org),,The total cholesterol in mg/dL (LBXTC) was converted to mmol/L (LBDTCSI) by multiplying by 0.02586.,P_RXQ_RX
+#LBDTCSI,Total Cholesterol (mmol/L),2017,2020,LAB,P_TCHOL,Cholesterol - Total,,,,,,P_RXQ_RX
+#WTSAF2YR,Fasting Subsample 2 Year MEC Weight,2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,,,,,Triglycerides were measured in a fasting subsample of participants 12 years and older. Special sample weights are required to analyze these data properly.,P_RXQ_RX
+LBXTR,Triglyceride (mg/dL),2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,150,>=,Triglycerides: Levels & Normal Range (clevelandclinic.org),,The triglycerides value in mg/dL (LBXTR) was converted to mmol/L (LBDTRSI) by multiplying by 0.01129.,P_RXQ_RX
+#LBDTRSI,Triglyceride (mmol/L),2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,,,,,The calculation is valid for triglycerides less than or equal to 400 mg/dL.,P_RXQ_RX
+LBDLDL,LDL-cholesterol (mg/dL),2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,100,>=,Cholesterol: Understanding Levels and Numbers (clevelandclinic.org),,[LDL-cholesterol] = [total cholesterol] – [HDL-cholesterol] – [triglycerides/5],P_RXQ_RX
+#LBDLDLSI,LDL-cholesterol (mmol/L),2017,2020,LAB,P_TRIGLY,Cholesterol - Low - Density Lipoprotein (LDL) & Triglycerides,,,,,The LDL-cholesterol in mg/dL (LBDLDL) was converted to mmol/L (LBDLDLSI) by multiplying by 0.02586.,P_RXQ_RX
+LBDHDD,Direct HDL-Cholesterol (mg/dL),2017,2020,LAB,P_HDL,Cholesterol - High-Density Lipoprotein (HDL),60,<,Cholesterol: Understanding Levels and Numbers (clevelandclinic.org),,,P_RXQ_RX
+#LBDHDDSI,Direct HDL-Cholesterol (mmol/L),2017,2020,LAB,P_HDL,Cholesterol - High-Density Lipoprotein (HDL),,,,,,P_RXQ_RX
+BPXOSY1,Systolic: Blood pres (1st rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,130,>=,High Blood Pressure  | American Heart Association,,,P_RXQ_RX
+BPXODI1,Diastolic: Blood pres (1st rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,P_RXQ_RX
+BPXOSY2,Systolic: Blood pres (2nd rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,130,>=,High Blood Pressure  | American Heart Association,,,P_RXQ_RX
+BPXODI2,Diastolic: Blood pres (2nd rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,P_RXQ_RX
+BPXOSY3,Systolic: Blood pres (3rd rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,130,>=,High Blood Pressure  | American Heart Association,,,P_RXQ_RX
+BPXODI3,Diastolic: Blood pres (3rd rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,P_RXQ_RX
+BPXOSY4,Systolic: Blood pres (4th rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,130,>=,High Blood Pressure  | American Heart Association,,,P_RXQ_RX
+BPXODI4,Diastolic: Blood pres (4th rdg) mm Hg,2017,2020,EXAM,P_BPXO,Blood Pressure,80,>=,High Blood Pressure  | American Heart Association,,,P_RXQ_RX
