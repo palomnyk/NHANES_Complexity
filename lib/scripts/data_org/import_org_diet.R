@@ -13,7 +13,7 @@
 #   a. alone (8) and with nutrients (9)
 # G. Category grams + food grams + nutrient (10)
 # H. Category simple + food simple + nutrient (11)
-  
+
 rm(list = ls()) #clear workspace
 
 pwd <- getwd()
@@ -72,8 +72,13 @@ nutr_d1d2_diet_2015 <- rowsum(d1d2_diet_2015[,nutr_vars],
 nutr_d1d2_diet_2015[,id_var] <- row.names(nutr_d1d2_diet_2015)
 
 dir.create(file.path(output_dir), showWarnings = FALSE)
-write.csv(nutr_d1d2_diet_2015, file = file.path(output_dir, "d1d2_nutr_only_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutr_only_2015", nutr_d1d2_diet_2015)
+
+num_only <- nutr_d1d2_diet_2015[,which(! names(nutr_d1d2_diet_2015) %in% c(id_var))]
+min_val <- min(num_only[num_only > 0])
+
+
+
 # d1d2_diet_2015 <- d1d2_diet_2015[, !sapply(d1d2_diet_2015, is.factor)]
 #Save usda food codes for overwriting
 orig_fd_code <- d1d2_diet_2015$`USDA food code`
@@ -86,12 +91,10 @@ USDA_food_g_only <- two_column_dummy(d1d2_diet_2015,
                     count_colnm = "Gram weight of the food/individual component")
 print(paste("Number of adult diet participants:", nrow(USDA_food_g_only)))
 
-write.csv(USDA_food_g_only, file = file.path(output_dir, "d1d2_food_g_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_food_g_2015", USDA_food_g_only)
 
 nutri_food_g <- merge(USDA_food_g_only, nutr_d1d2_diet_2015, by = id_var)
-write.csv(nutri_food_g, file = file.path(output_dir, "d1d2_nutri_food_g_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutri_food_g_2015", nutri_food_g)
 
 USDA_food_simple <- subset(d1d2_diet_2015, select = c("USDA food code", id_var))
 
@@ -103,12 +106,10 @@ USDA_food_simple <- rowsum(USDA_food_simple,
                              group = USDA_food_simple[,id_var],na.rm=T, )
 USDA_food_simple[,id_var] <- row.names(USDA_food_simple)
 
-write.csv(USDA_food_simple, file = file.path(output_dir, "d1d2_food_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_food_2015", USDA_food_simple)
 
 nutri_food_simple <- merge(USDA_food_simple, nutr_d1d2_diet_2015, by = id_var)
-write.csv(nutri_food_simple, file = file.path(output_dir, "d1d2_nutri_food_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutri_food_2015", nutri_food_simple)
 # d1_tot_diet_2015 <- download_org_nhanes(dt_group = "DIET", nh_tble = "DR1TOT_I")
 
 #### Food categories ####
@@ -119,13 +120,10 @@ cat_g_only <- two_column_dummy(d1d2_diet_2015,
                                      item_colnm = "USDA food code",
                                      count_colnm = "Gram weight of the food/individual component")
 print(paste("Number of adult diet participants:", nrow(cat_g_only)))
-
-write.csv(cat_g_only, file = file.path(output_dir, "d1d2_cat_g_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_cat_g_2015", cat_g_only)
 
 nutri_food_g <- merge(cat_g_only, nutr_d1d2_diet_2015, by = id_var)
-write.csv(nutri_food_g, file = file.path(output_dir, "d1d2_nutri_cat_g_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutri_cat_g_2015", nutri_food_g)
 
 cat_simple <- subset(d1d2_diet_2015, select = c("USDA food code", id_var))
 
@@ -136,20 +134,17 @@ cat_simple <- fastDummies::dummy_cols(cat_simple,
 cat_simple <- rowsum(cat_simple,
                            group = cat_simple[,id_var],na.rm=T, )
 cat_simple[,id_var] <- row.names(cat_simple)
-
-write.csv(cat_simple, file = file.path(output_dir, "d1d2_cat_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_cat_2015", cat_simple)
 
 nutri_food_simple <- merge(cat_simple, nutr_d1d2_diet_2015, by = id_var)
-write.csv(nutri_food_simple, file = file.path(output_dir, "d1d2_nutri_cat_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutri_cat_2015", nutri_food_simple)
+
 # G. Category grams + food grams + nutrient (10)
 nutri_food_g_cat_g <- merge(nutri_food_g, USDA_food_g_only)
-write.csv(nutri_food_g_cat_g, file = file.path(output_dir, "d1d2_nutri_food_g_cat_g_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutri_food_g_cat_g_2015", nutri_food_g_cat_g)
+
 # H. Category simple + food simple + nutrient (11)
 nutri_food_cat <- merge(nutri_food_simple, USDA_food_simple)
-write.csv(nutri_food_cat, file = file.path(output_dir, "d1d2_nutri_food_cat_2015.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutri_food_cat_2015", nutri_food_cat)
 
 print("End R script.")
