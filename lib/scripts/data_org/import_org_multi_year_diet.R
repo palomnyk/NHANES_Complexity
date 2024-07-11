@@ -108,8 +108,7 @@ nutr_multi_yr_diet <- rowsum(multi_yr_diet[,nutr_vars],
 nutr_multi_yr_diet[,id_var] <- row.names(nutr_multi_yr_diet)
 
 dir.create(file.path(output_dir), showWarnings = FALSE)
-write.csv(nutr_multi_yr_diet, file = file.path(output_dir, "d1d2_nutr_only_2009-2020.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutr_only_2009-2020", nutr_multi_yr_diet)
 # multi_yr_diet <- multi_yr_diet[, !sapply(multi_yr_diet, is.factor)]
 #Make food grams dummys
 USDA_food_g_only <- two_column_dummy(multi_yr_diet,
@@ -118,12 +117,10 @@ USDA_food_g_only <- two_column_dummy(multi_yr_diet,
                     count_colnm = "Gram weight of the food/individual component")
 print(paste("Number of adult diet participants:", nrow(USDA_food_g_only)))
 
-write.csv(USDA_food_g_only, file = file.path(output_dir, "d1d2_food_g_2009-2020.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_food_g_2009-2020", USDA_food_g_only)
 
 nutri_food_g <- merge(USDA_food_g_only, nutr_multi_yr_diet, by = id_var)
-write.csv(nutri_food_g, file = file.path(output_dir, "d1d2_nutri_food_g_2009-2020.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutri_food_g_2009-2020", nutri_food_g)
 
 USDA_food_simple <- subset(multi_yr_diet, select = c("food_name", id_var))
 
@@ -134,13 +131,10 @@ USDA_food_simple <- fastDummies::dummy_cols(USDA_food_simple,
 USDA_food_simple <- rowsum(USDA_food_simple,
                              group = USDA_food_simple[,id_var],na.rm=T, )
 USDA_food_simple[,id_var] <- row.names(USDA_food_simple)
-
-write.csv(USDA_food_simple, file = file.path(output_dir, "d1d2_food_2009-2020.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_food_2009-2020", USDA_food_simple)
 
 nutri_food_simple <- merge(USDA_food_simple, nutr_multi_yr_diet, by = id_var)
-write.csv(nutri_food_simple, file = file.path(output_dir, "d1d2_nutri_food_2009-2020.csv"),
-          row.names = FALSE)
+save_all_transforms(output_dir, "d1d2_nutri_food_2009-2020.csv", nutri_food_simple)
 
 #### Food categories ####
 # cat_g_only <- two_column_dummy(d1d2_diet_2015,
