@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=rf_cat_grams_log                     # Job name
-#SBATCH --time=24:00:00                                 # Time limit (hrs:min:sec)
+#SBATCH --time=48:00:00                                 # Time limit (hrs:min:sec)
 #SBATCH --nodes=1                                       # Number of nodes requested
 #SBATCH --ntasks-per-node=1                          		# Number of CPUs (processor cores/tasks)
 #SBATCH --mem=75gb                                      # Memory limit

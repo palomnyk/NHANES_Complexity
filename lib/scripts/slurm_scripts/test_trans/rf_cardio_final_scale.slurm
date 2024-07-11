@@ -23,7 +23,7 @@ python --version
 python lib/scripts/ml/rf-resp_df.py \
 	--response_fn Data/respns_vars/cardio_respns_vars.csv \
 	--delimeter , \
-	--pred_path Data/diet/diet_supp_combined_NHANES_SCALE.csv \
+	--pred_path Data/diet_supp_combined_NHANES_SCALE.csv \
 	--out_folder final_all_trans \
 	--output_label all_combined_d1d2_SCALE \
 	--title all_combined_SCALE

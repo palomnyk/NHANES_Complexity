@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --job-name=rf_cat_grams_SCALE                     # Job name
+#SBATCH --job-name=nut_food_g_cat_g_LOG      			# Job name
 #SBATCH --time=48:00:00                                 # Time limit (hrs:min:sec)
 #SBATCH --nodes=1                                       # Number of nodes requested
-#SBATCH --ntasks-per-node=1                          		# Number of CPUs (processor cores/tasks)
+#SBATCH --ntasks-per-node=1                          	# Number of CPUs (processor cores/tasks)
 #SBATCH --mem=50gb                                      # Memory limit
 #SBATCH --mail-type=BEGIN,END,FAIL                      # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=aaron.yerke@usda.gov                # Specified email address
@@ -22,10 +22,10 @@ python --version
 python lib/scripts/ml/rf-resp_df.py \
 	--response_fn Data/respns_vars/cardio_respns_vars.csv \
 	--delimeter , \
-	--pred_path Data/diet/d1d2_cat_g_2015_SCALE.csv \
+	--pred_path Data/diet/d1d2_nutri_food_g_cat_g_2015_LOG.csv \
 	--out_folder diet_test_d1d2_trans \
-	--output_label cat_grams_d1d2_SCALE \
-	--title cat_grams_SCALE
+	--output_label nutr_food_cat_g_LOG \
+	--title nutr_food_cat_g_LOG
 
 echo ""
 echo "======================================================"
