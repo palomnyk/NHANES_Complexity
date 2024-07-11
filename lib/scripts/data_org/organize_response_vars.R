@@ -15,13 +15,14 @@ source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 print("Establishing directory layout and other constants.")
 # --------------------------------------------------------------------------
 #### Establish directory layout and other constants ####
+input_dir <- file.path("lib", "datasets")
 output_dir <- file.path("Data", "respns_vars")
 added_tables <- c()
 not_added <- c()
 full_df <- data.frame()
 id_name <- "Respondent sequence number"
 #### Loading in data ####
-import_tables <- read.csv(file = file.path(output_dir, "response_features_tables.csv"),
+import_tables <- read.csv(file = file.path(input_dir, "response_features_tables.csv"),
                           header = T, comment.char = "#",
                           check.names =F)
 
