@@ -184,11 +184,3 @@ save_all_transforms <- function(out_dir, prefix, df,
 }
 
 print("Functions loaded!")
-
-test <- read.csv(file.path("/project/nhanes_ml/NHANES_Complexity/Data", "diet_supp_combined_NHANES_LOG.csv"),
-                 header=1)
-
-test1 <- read.csv(file.path("/project/nhanes_ml/NHANES_Complexity/Data", "diet_supp_combined_NHANES_SCALE.csv"),
-                  header=1)
-
-plot(1:nrow(test1), sort(test1[,3400]))
