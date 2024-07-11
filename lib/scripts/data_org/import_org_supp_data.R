@@ -113,6 +113,9 @@ sup_diet_2015[,id_var] <- row.names(sup_diet_2015)
 write.csv(sup_diet_2015,
           file.path("Data", "diet", "d1d2_nutri_cat_g_food_g_supp_dose.csv"),
           row.names = FALSE)
+save_all_transforms(file.path("Data", "diet"),
+                    "d1d2_nutri_cat_g_food_g_supp_dose",
+                    sup_diet_2015)
 
 print("End of R script.")
 # 
