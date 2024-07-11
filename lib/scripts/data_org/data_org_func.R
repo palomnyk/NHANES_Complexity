@@ -137,4 +137,58 @@ unit_test1 <- two_column_dummy(df = tst_df,
                                count_colnm = "count")
 identical(unit_test1, dummy_df)
 
+min_max_trans <- function(df) {
+  # for min max transformations
+  if (!requireNamespace("caret", quietly = TRUE)) BiocManager::install("caret")
+  library("caret")
+  
+  # normalizing data
+  ss <- preProcess(as.data.frame(df), method=c("range"))
+  
+  df <- predict(ss, as.data.frame(df))
+  detach("package:caret", unload=TRUE)
+  return(df)
+}
+
+#for making all the transformations at once
+save_all_transforms <- function(out_dir, prefix, df,
+                                id_var = "Respondent sequence number" ) {
+  print(paste("Creating transformations of", prefix))
+  write.csv(df, file = file.path(out_dir, paste0(prefix,".csv")),
+            row.names = FALSE)
+  row.names(df) <- df[,id_var]
+  print(ncol(df))
+  num_only <- df[,which(! names(df) %in% c(id_var))]
+  num_only[is.na(num_only)] <- 0
+  print(ncol(num_only))
+  print(paste("min/maxing", prefix))
+  # df_mm <- min_max_trans(num_only)
+  # df_mm[,id_var] <- row.names(num_only)
+  # write.csv(df_mm, file = file.path(out_dir, paste0(prefix,"_MM.csv")),
+  #           row.names = FALSE)
+  # Z-score standardization, AKA (df - mean(df)) / sd(df)
+  df_scale <- as.data.frame(scale(num_only, center = TRUE, scale = TRUE))
+  df_scale[,id_var] <- row.names(num_only)
+  write.csv(df_scale, file = file.path(out_dir, paste0(prefix,"_SCALE.csv")),
+            row.names = FALSE)
+  print(paste("logging", prefix))
+  min_val <- min(num_only[num_only > 0])
+  # print(num_only)
+  num_only <- num_only + min_val/10
+  df_log <- log(num_only)
+  df_log[,id_var] <- row.names(num_only)
+  write.csv(df_log, file = file.path(out_dir, paste0(prefix,"_LOG.csv")),
+            row.names = FALSE)
+  print(paste("Saved 4 transformations of", prefix))
+  # return(df_log)
+}
+
 print("Functions loaded!")
+
+test <- read.csv(file.path("/project/nhanes_ml/NHANES_Complexity/Data", "diet_supp_combined_NHANES_LOG.csv"),
+                 header=1)
+
+test1 <- read.csv(file.path("/project/nhanes_ml/NHANES_Complexity/Data", "diet_supp_combined_NHANES_SCALE.csv"),
+                  header=1)
+
+plot(1:nrow(test1), sort(test1[,3400]))
