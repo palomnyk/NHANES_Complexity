@@ -11,14 +11,11 @@ library("optparse")
 print("Reading cml arguments")
 # --------------------------------------------------------------------------
 option_list <- list(
-  optparse::make_option(c("-d", "--homedir"), type="character", 
-                        default=file.path('~','git',"NHANES_Complexity"), 
-                        help="dataset git repo path"),
-  optparse::make_option(c("-a", "--data"), type="character", default="dframe.csv",
+  optparse::make_option(c("-a", "--data"), type="character", default="Data/respns_vars/2009-2020cardio_respns_vars.csv",
                         help="filename in tables folder"),
   optparse::make_option(c("-l", "--delim"), type="character", default="\t",
                         help="metadata file deliminator", metavar="character"),
-  optparse::make_option(c("-c", "--colnames"), type="character", default=1,
+  optparse::make_option(c("-c", "--colnames"), type="character", default=FALSE,
                         help="metadata file row to use for row names"),
   # callback = strsplit(), callback_args = "split = ','"),
   optparse::make_option(c("-o", "--output_fname"), type="character", default="descriptives",
@@ -36,8 +33,12 @@ Rscript ./lib/scripts/descriptive/descriptive_analysis.R \
   --data PHTHTE_PAQ_noRx_BP_2015_match_diet_SYST1_RF.csv \
   --colnames "Systolic_Hypertension,Diastolic_Hypertension,Diastolic:  Blood pressure (first reading) mm Hg,Systolic:  Blood pressure (first reading) mm Hg" \
   --delim "," \
-  --output_fname BpLowSparcity
+  --output_fname cardio_respns_vars_2009-2020
   
+Rscript ./lib/scripts/descriptive/data_descriptives.R \
+  --data Data/respns_vars/2009-2020cardio_respns_vars.csv \
+  --delim "," \
+  --output_fname cardio_respns_vars_2009-2020
 '
 
 opt_parser <- optparse::OptionParser(option_list=option_list);
@@ -48,28 +49,35 @@ print(opt)
 
 # --------------------------------------------------------------------------
 print("Establishing directory layout and other constants.")
-# --------------------------------------------------------------------------
-home_dir <- opt$homedir
-project <- opt$project
-output_dir <- file.path(home_dir, 'output')
 #### Establish directory layout and other constants ####
-output_dir <- file.path("output")
+output_label <- opt$output_fname
+output_dir <- file.path("output", "descriptives")
+dir.create(output_dir)
+dir.create(file.path(output_dir, "graphics"))
+dir.create(file.path(output_dir, "tables"))
 
 #### Loading in data ####
-my_table <- read.csv(file = file.path(output_dir,"tables", opt$data),
+my_table <- read.csv(file = file.path( opt$data),
                      header = T,
                      check.names =F)
 
-output_label <- paste0("descr_", opt$output_fname)
-desc_columns <- unlist(strsplit(opt$colnames, ","))
+if (opt$colnames == FALSE){
+  desc_columns <- names(my_table)
+}else{
+  desc_columns <- unlist(strsplit(opt$colnames, ","))
+}
 print(desc_columns)
 
-out_name <- paste0(output_label, ".pdf")
+pdf_name <- paste0(output_label, ".pdf")
+pdf(file = file.path(output_dir, "graphics", pdf_name))
 
-pdf(file = file.path(output_dir, "graphics", out_name))
+feature <- c()
+feat_count <- c()
+
 for (feat in desc_columns){
   counts <- my_table[,feat]
-  supstring <- paste("n observation:", length(!is.na(counts)))
+  no_na <- sum(!is.na(counts))
+  supstring <- paste("n observation:", no_na)
   # print(supstring)
   if (is.numeric(counts)){
     hist(counts, main = substr(feat, 1, 65), xlab = supstring, breaks=100)
@@ -81,5 +89,16 @@ for (feat in desc_columns){
     # my_string <- paste(my_string,"\n",str(table(counts)))
     # cat(str(data.frame(table(counts))), file = cat_out_name, append = T)
   }
+  feature <- c(feature, feat)
+  feat_count <- c(feat_count, no_na)
 }
+
 dev.off()
+
+
+count_table <- data.frame(feature, feat_count)
+
+write.csv(count_table, file = file.path(output_dir, "tables", paste0(output_label, ".csv")),
+          row.names = FALSE)
+
+print("End of R script!")
