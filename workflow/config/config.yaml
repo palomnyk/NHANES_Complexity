@@ -1,29 +1,26 @@
-# Currently using to declutter Snakefile
-
-bash_or_slurm: bash
-
-test_diets:
-    d1_nutr_only_2015.csv,
-    d1_food_g_2015.csv,
-    d1_nutri_food_g_2015.csv,
-    d1_food_2015.csv,
-    d1_nutri_food_2015.csv,
-    d1_cat_g_2015.csv,
-    d1_nutri_cat_g_2015.csv,
-    d1_cat_2015.csv,
-    d1_nutri_cat_2015.csv,
-    d1_nutri_food_g_cat_g_2015.csv,
-    d1_nutri_food_cat_2015.csv,
-
-rf_test_diets:
-    rf_cardio_cat.slurm,
-    rf_cardio_nut_cat_g.slurm,
-    rf_cardio_nut_only.slurm,
-    rf_cardio_food_g.slurm,
-    rf_cardio_nut_cat.slurm,
-    rf_cardio_nutr_food_g.slurm,
-    rf_cardio_cat_g.slurm,
-    rf_cardio_food_simp.slurm,
-    rf_cardio_nut_food_simp.slurm,
-    rf_cardio_nut_food_cat_g.slurm
-    rf_cardio_nut_food_cat_simp.slurm
+#This was a big help: https://github.com/jdblischak/smk-simple-slurm/blob/main/simple/config.v8%2B.yaml#L5
+executor: cluster-generic
+cluster-generic-submit-cmd:
+  mkdir -p slurmLogs/{rule} &&
+  sbatch
+    --partition={resources.partition}
+    --cpus-per-task={threads}
+    --mem={resources.mem_mb}
+    --job-name=smk-{rule}-{wildcards}
+    --output=slurmLogs/{rule}/{rule}-{wildcards}-%x.%j.log
+    --error=slurmLogs/{rule}/{rule}-{wildcards}-%x.%j.log
+    --parsable
+default-resources:
+  - partition=short
+  - mem_mb=1000
+restart-times: 3
+max-jobs-per-second: 10
+max-status-checks-per-second: 1
+local-cores: 1
+latency-wait: 60
+jobs: 500
+keep-going: True
+rerun-incomplete: True
+printshellcmds: True
+scheduler: greedy
+use-conda: True
