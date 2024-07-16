@@ -9,10 +9,15 @@ cluster-generic-submit-cmd:
     --job-name=smk-{rule}-{wildcards}
     --output=slurmLogs/{rule}/{rule}-{wildcards}-%x.%j.log
     --error=slurmLogs/{rule}/{rule}-{wildcards}-%x.%j.log
+    --mail-user=aaron.yerke@usda.gov
+    --mail-type=BEGIN,END,FAIL
     --parsable
 default-resources:
   - partition=short
   - mem_mb=1000
+  - time=120 #num minutes
+  - nodes=10
+  - ntasks=5
 restart-times: 3
 max-jobs-per-second: 10
 max-status-checks-per-second: 1
