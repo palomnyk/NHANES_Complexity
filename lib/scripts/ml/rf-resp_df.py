@@ -100,6 +100,7 @@ print("Establishing directory layout.", flush = True)
 # --------------------------------------------------------------------------
 output_dir = os.path.join(".", "output", options.out_folder)
 if not os.path.exists(output_dir):
+	os.makedirs(os.path.join(".",output_dir), exist_ok=True)
 	os.makedirs(os.path.join(".",output_dir, "graphics"), exist_ok=True)
 	os.makedirs(os.path.join(".",output_dir, "tables"), exist_ok=True)
 assert os.path.exists(output_dir)
