@@ -57,8 +57,8 @@ parser.add_argument("-m", "--metadata_cols",
 parser.add_argument("-o", "--output_label", default="py_rf",
 				  dest="output_label",
                   help="base label for output files (additional info will be added to it)")
-parser.add_argument("-a", "--use_all_meta", default=False,
-                  help="use all metadata", metavar="use_all_meta")
+parser.add_argument("-c", "--response_col", default=False,
+                  help="Feature column to use in response var, if empty, all will be used")
 parser.add_argument("-f", "--out_folder", 
 					default="",
                   help="path, sub folder in 'output'.", 
@@ -69,9 +69,6 @@ parser.add_argument("-r", "--response_fn", default="", dest="resp_fn",
 parser.add_argument("-l", "--delimiter", default="\t",
                   help="File delimiting symbol for metadata. Default is tab.",
 									metavar="delim", dest="delim")
-parser.add_argument("-i", "--meta_index_col", default=0,
-                  help="Name of column to use as row name for metadata",
-                  metavar="meta_index_col", dest="meta_index_col")
 parser.add_argument("-t", "--title", default=False,
                   help="Title for visualizations",
                   metavar="title", dest="title")
@@ -112,28 +109,38 @@ print("Establishing other constants.")
 # --------------------------------------------------------------------------
 
 output_label = options.output_label
-result_fpath = os.path.join(output_dir, "tables", f"{output_label}_data.csv")
 col_names = ["model", "response_var"]
 num_cv_folds = 10
 n_trees = 1000
 bar_shown = 25
 col_names = col_names + [f"split{x}" for x in range(num_cv_folds)]
-pdf_fpath = os.path.join(output_dir, "graphics", f"bp_{output_label}_feature_importance.pdf")
-sum_pdf_fpath = os.path.join(output_dir, "graphics", f"sum_{output_label}_.pdf")
-algo_table_fpath = os.path.join(output_dir, "tables", f"algo_{output_label}_.csv")
 if options.title == False:
 	options.title == options.output_label
 
 response_df = pd.read_csv(os.path.join(".",options.resp_fn), \
 		sep=",", header=0).replace("TRUE", True).replace("FALSE", False)
 print(response_df.columns)
-response_cols = response_df.columns
+
+#set labels for output files and select column to use in response var
+if options.response_col == False:
+	response_cols = response_df.columns
+	resp_col_label = ""
+else:
+	response_cols = [options.response_col]
+	resp_col_label = f"1col{options.response_col}"
 response_df = response_df.sort_values(by = options.id_var)
 pred_df = pd.read_csv(os.path.join(".",options.pred_table), \
 		sep=",", header=0, index_col=options.id_var).fillna(0)
 print(pred_df)
 pred_df = pred_df.sort_values(by = options.id_var)
 id_list = response_df.loc[:,options.id_var]
+
+#output files
+output_label = f"{resp_col_label}?{options.output_label}"
+result_fpath = os.path.join(output_dir, "tables", f"{output_label}_data.csv")
+pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_feat_import.pdf")
+sum_pdf_fpath = os.path.join(output_dir, "graphics", f"sum_{output_label}.pdf")
+algo_table_fpath = os.path.join(output_dir, "tables", f"algo_{output_label}.csv")
 
 seed = 7
 
