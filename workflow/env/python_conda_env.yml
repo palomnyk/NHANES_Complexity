@@ -12,7 +12,6 @@ channels:
   - defaults
 dependencies:
   - python=3.11 #3.11 is the latest python for conda on 1/19/2024
-  - r-base=4.3
   - snakemake
   - numpy
   - matplotlib
@@ -20,6 +19,12 @@ dependencies:
   - scipy
   - statsmodels
   - pip
+  - r-base=4.3
+  - r-ggplot2
+  - r-BiocManager
+  - r-nhanesA
+  - r-readxl
+  - r-fastDummies
 
 #To install conda on wsl:
 #  Download linux conda from https://www.anaconda.com/download#downloads
