@@ -48,38 +48,38 @@ mpg_df$`Respondent sequence number` <- row.names(mpg_df)
 write.csv(mtc_df, file.path(output_dir, "mtc_predictor.csv"), row.names = FALSE)
 write.csv(mpg_df, file.path(output_dir, "mtc_response.csv"), row.names = FALSE)
 
-my_intersect <- intersect(row.names(mpg_df),
-                          row.names(mtc_df))
+# my_intersect <- intersect(row.names(mpg_df),
+#                           row.names(mtc_df))
 
-cv_folds <- 10
-cross_vals <- split(sample(my_intersect, size = length(my_intersect)), cut(seq(length(my_intersect)), cv_folds))
+# cv_folds <- 10
+# cross_vals <- split(sample(my_intersect, size = length(my_intersect)), cut(seq(length(my_intersect)), cv_folds))
 
-#### Loop through for random forest ####
-r_sqs <- c()
-topic <- c()
+# #### Loop through for random forest ####
+# r_sqs <- c()
+# topic <- c()
 
-for (colmn in 1:ncol(mpg_df)) {
+# for (colmn in 1:ncol(mpg_df)) {
   
-  for (cv in 1:cv_folds){
-    test_fold <- as.character(cross_vals[[cv]]) #SEQN for testing
-    train_fold <- as.character(my_intersect[!my_intersect %in% test_fold]) #SEQN for training
-    predct_tst <- mtc_df[test_fold,]
-    predct_trn <- mtc_df[train_fold,]
-    resp_trn <- mpg_df[train_fold, colmn]
-    resp_tst <- mpg_df[test_fold , colmn]
-    rf <- randomForest::randomForest(predct_trn, resp_trn)
-    print("made rf")
-    pred <- predict(rf, predct_tst)
-    my_lm <- lm(pred ~ resp_tst)
-    r_sqs <- c(r_sqs, summary(my_lm)$r.squared)
-    topic <- c(topic, names(mpg_df)[colmn])
-  }
-}
+#   for (cv in 1:cv_folds){
+#     test_fold <- as.character(cross_vals[[cv]]) #SEQN for testing
+#     train_fold <- as.character(my_intersect[!my_intersect %in% test_fold]) #SEQN for training
+#     predct_tst <- mtc_df[test_fold,]
+#     predct_trn <- mtc_df[train_fold,]
+#     resp_trn <- mpg_df[train_fold, colmn]
+#     resp_tst <- mpg_df[test_fold , colmn]
+#     rf <- randomForest::randomForest(predct_trn, resp_trn)
+#     print("made rf")
+#     pred <- predict(rf, predct_tst)
+#     my_lm <- lm(pred ~ resp_tst)
+#     r_sqs <- c(r_sqs, summary(my_lm)$r.squared)
+#     topic <- c(topic, names(mpg_df)[colmn])
+#   }
+# }
 
-print(r_sqs)
-print(topic)
+# print(r_sqs)
+# print(topic)
 
-print(mean(r_sqs[which(topic == "mpg")]))
+# print(mean(r_sqs[which(topic == "mpg")]))
 
 print("End R script.")
 

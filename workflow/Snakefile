@@ -6,16 +6,23 @@ configfile: "workflow/config/config.yaml"
 import os
 import pandas as pd
 
+print("Loading functions")
+def get_column_names(df_path):
+    df = pd.read_csv(os.path.join(df_path), sep=",", header=0)
+    print("Get col names")
+    print(df.columns.values)
+    return df.columns.values
+
 diet_df = pd.read_csv(os.path.join(".","Data", "diet", "diet_test_rf.csv"), \
 		sep=",", header=0)
 
-# test_diets = [os.path.join("Data", "diet", x) for x in expand("{diet}", diet=config["test_diets"])]
+# test_diets = [os.path.join("Data", "diet", x) for x in expand("{test_column}", diet=config["test_diets"])]
 # print(test_diets)
 test_diets = expand("Data/diet/{diet}", diet=diet_df.loc[:,"Diet_orgs"])
 print(test_diets)
 epochs = ["2015", "2009-2020"]
-# Wildcards can be {diet},{epoch},{transform}
-# Data types cand be "_data" for randome forest output
+# Wildcards can be {diet},{epoch},{transform},{test_col}
+# Data types can be "_data" for randome forest output
 
 output_subdir="diet_test_d1d2"
 rule diet_org_comparison:
@@ -42,16 +49,56 @@ rule diet_org_comparison:
         python --version
         Rscript lib/scripts/fig/diet_org_test_figure.R -o {params.output_subdir}
         """
-rule create_test_rf_datasets:
+checkpoint create_test_rf_dataset:
     output: 
-        "Data/unit_test/mtc_predictor.csv",
-        "Data/unit_test/mtc_response.csv"
-    conda:"env/python_conda_env.yml",
+        pred = "Data/unit_test/mtc_predictor.csv",
+        resp = "Data/unit_test/mtc_response.csv"
+    # conda:"env/python_conda_env.yml",
     shell:
         """
         Rscript lib/scripts/unit_test/make_rf_test_dfs.R
         """
+
+rule aggregate_test_rf_feature_data:
+    input: expand("output/unit_test/1c{test_column}?rf_test_data.csv", test_column=get_column_names(checkpoints.create_test_rf_dataset.output.resp))
+    run:
+        print("expand_test_rest_colnames")
+        for i in {input}:
+            print("i")
+
+rule rf_test_dataset:
+    input:
+        pred = checkpoints.create_test_rf_dataset.output.pred,
+        resp = checkpoints.create_test_rf_dataset.output.resp,
+    output:
+        "output/unit_test/1c{test_column}?rf_test_data.csv"
+    shell:
+        """
+            echo {wildcards.test_column}
+            mkdir -p output/unit_test
+            python lib/scripts/ml/rf-resp_df.py \
+                    --response_fn {input.resp} \
+                    --delimeter , \
+                    --pred_path {input.pred} \
+                    --out_folder unit_test \
+                    --output_label rf_test \
+                    --title rf_test_"{wildcards.test_column}" \
+                    --response_col "{wildcards.test_column}" \
+                    --
+                """
     
+            
+# rule NAME:
+#     input: "path/to/inputfile", "path/to/other/inputfile"
+#     output: "path/to/outputfile", somename = "path/to/another/outputfile"
+#     run:
+#         for f in input:
+#             ...
+#             with open(output[0], "w") as out:
+#                 out.write(...)
+#         with open(output.somename, "w") as out:
+#             out.write(...)
+
 rule create_diets:
     conda:"env/python_conda_env.yml",
     input:
@@ -73,7 +120,7 @@ rule create_diets:
         runtime=240 #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
     shell:
         """
-        Rscript ./lib/scripts/data_org/import_org_diet.R
+        Rscript {input.script}
         """
 
 rule create_resp_var_table_2015:

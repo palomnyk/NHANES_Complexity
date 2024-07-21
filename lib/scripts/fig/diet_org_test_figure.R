@@ -171,3 +171,5 @@ org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONL
 resp_vars_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
 
 dev.off()
+
+print("End of R script!")
