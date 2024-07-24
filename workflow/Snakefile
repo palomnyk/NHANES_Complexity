@@ -1,8 +1,8 @@
 # Author: Aaron Yerke (aaronyerke@gmail.com)
 # Main snakemake file for running and re-running scripts
-print("In snakefile.")
+# print("In snakefile.")
 configfile: "workflow/config/config.yaml"
-# print(config)
+
 import os
 import pandas as pd
 
@@ -47,10 +47,17 @@ checkpoint create_test_rf_dataset:
     output:
         pred = "Data/unit_test1/mtc_predictor.csv",
         resp = "Data/unit_test1/mtc_response.csv"
+    conda:"env/python_conda_env.yml",
+    output:
+        pred = "Data/unit_test/mtc_predictor.csv",
+        resp = "Data/unit_test/mtc_response.csv"
     # conda:"env/python_conda_env.yml",
     shell:
         """
-        Rscript lib/scripts/unit_test1/make_rf_test_dfs.R
+        echo $PWD
+        mkdir -p output/unit_test
+        module load r
+        Rscript lib/scripts/unit_test/make_rf_test_dfs.R
         """
 
 
@@ -59,7 +66,7 @@ checkpoint create_test_rf_dataset:
 #     checkpoint_output = checkpoints.create_test_rf_dataset.output[1]
 #     print(checkpoint_output)
 #     my_wcs <- get_column_names(checkpoint_output)
-#     return expand("output/unit_test1/tables/1c{test_column}_data.csv",
+#     return expand("output/unit_test/tables/1c{test_column}_data.csv",
 #                 test_column=glob_wildcards(my_wcs))
 
 # rule aggregate:
@@ -70,19 +77,14 @@ checkpoint create_test_rf_dataset:
 #       shell:
 #           "cat {input} > {output}"
 
-def get_test_resp_column_names():
-    # df_path = checkpoints.create_test_rf_dataset.get().output[1]
-    df_path = "Data/unit_test1/mtc_response.csv"
-    print(df_path)
+def get_test_resp_column_names(wildcards):
+    df_path = checkpoints.create_test_rf_dataset.get(**wildcards).output[1]
     df = pd.read_csv(df_path, sep=",", header=0)
-    print("Get col names")
-    print(df.columns.values)
-    return expand("output/unit_test1/1c{test_column}?rf_test_data.csv", test_column=df.columns.values)
+    return expand("output/unit_test/1c{test_column}?rf_test_data.csv", test_column=df.columns.values)
 
 
 rule aggregate_test_rf_feature_data:
-    input:
-        get_test_resp_column_names()
+    input: get_test_resp_column_names
     run:
         print("expand_test_rest_colnames")
         for i in {input}:
@@ -90,8 +92,8 @@ rule aggregate_test_rf_feature_data:
 
 rule rf_test_dataset:
     input:
-        pred = "Data/unit_test1/mtc_predictor.csv",
-        resp = "Data/unit_test1/mtc_response.csv"
+        pred = "Data/unit_test/mtc_predictor.csv",
+        resp = "Data/unit_test/mtc_response.csv"
     output:
         "output/unit_test1/1c{test_column}?rf_test_data.csv"
     shell:
