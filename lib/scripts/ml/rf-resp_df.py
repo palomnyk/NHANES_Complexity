@@ -39,6 +39,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 import argparse
 import random
+import pathlib
 import pdb
 
 # QT_DEBUG_PLUGINS=1
@@ -99,10 +100,9 @@ print("Defining functions", flush = True)
 print("Establishing directory layout.", flush = True)
 # --------------------------------------------------------------------------
 output_dir = os.path.join(".", "output", options.out_folder)
-if not os.path.exists(output_dir):
-	os.makedirs(os.path.join(".",output_dir), exist_ok=True)
-	os.makedirs(os.path.join(".",output_dir, "graphics"), exist_ok=True)
-	os.makedirs(os.path.join(".",output_dir, "tables"), exist_ok=True)
+
+pathlib.Path(os.path.join(".",output_dir, "graphics")).mkdir(parents=True, exist_ok=True) 
+pathlib.Path(os.path.join(".",output_dir, "tables")).mkdir(parents=True, exist_ok=True) 
 assert os.path.exists(output_dir)
 
 # --------------------------------------------------------------------------
