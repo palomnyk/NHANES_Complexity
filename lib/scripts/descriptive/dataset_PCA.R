@@ -11,8 +11,26 @@ if (!requireNamespace("openxlsx", quietly = TRUE))  BiocManager::install("openxl
 library("openxlsx")
 if (!require("ggplot2")) BiocManager::install("ggplot2")
 library("ggplot2")
+if (!requireNamespace("optparse", quietly = TRUE)) BiocManager::install("optparse")
+library("optparse")
 
 print("Loaded packages")
+
+#### Read commandline arguements ####
+option_list <- list(
+  optparse::make_option(c("-r", "--filename_root"), type="character", 
+                        default="d1d2_food_g_2009-2020", metavar="character",
+                        help="filename before '_TRANSFORMATION' or '.csv'"),
+  optparse::make_option(c("-i", "--input_dir"), type="character",
+                        default=file.path("Data", "diet", "multi_year"),
+                        help="relative path to folder holding csv tables",
+                        metavar="character")
+);
+opt_parser <- optparse::OptionParser(option_list=option_list);
+opt <- parse_args(opt_parser);
+
+print(opt)
+print("Done reading cml arguments")
 
 #### Establish directory layout and other constants ####
 output_dir <- file.path("output", "dataset_PCA")
@@ -20,27 +38,25 @@ dir.create(file.path(output_dir))
 dir.create(file.path(output_dir, "graphics"))
 dir.create(file.path(output_dir, "tables"))
 
-input_dir <- file.path("Data", "diet")
-fn_root <- "d1d2_cat_g_2015"
-suffixs <- c("", "_LOG", "_MM", "_SCALE")
+input_dir <- file.path("Data", "diet", "multi_year")
+suffixs <- c("", "_LOG", "_SCALE")# "_MM",
 id_var <- "Respondent sequence number"
 
 #### Loading in data ####
-meta_fp <- file.path("Data","respns_vars","cardio_respns_vars.csv")
+meta_fp <- file.path("Data","respns_vars","2009-2020cardio_respns_vars.csv")
 meta_df <- read.csv(meta_fp, header = TRUE,
                     row.names = id_var,
                     check.names = FALSE)
 
 #### PCA ####
-pdf(file.path(output_dir, "graphics", paste0(fn_root, "PCA.pdf")))
+pdf(file.path(output_dir, "graphics", paste0(opt$filename_root, "PCA.pdf")))
 for (suf in 1:length(suffixs)){
   suffix <- suffixs[suf]
-  f_path <- file.path(input_dir, paste0(fn_root, suffix, ".csv"))
+  f_path <- file.path(input_dir, paste0(opt$filename_root, suffix, ".csv"))
   print(f_path)
   my_table <- read.csv(f_path, header = TRUE,
                        row.names = id_var,
                        check.names = FALSE)
-  sadfsdaf
   #create PCA
   my_prcmp <- prcomp(na.omit(my_table), 
                      center = TRUE,
@@ -59,27 +75,15 @@ for (suf in 1:length(suffixs)){
     print(paste(length(myPCA$PC1), length(factor(my_meta_df[,md]))))
     g <- ggplot2::ggplot(myPCA, aes(x=PC1, y=PC2, col = my_meta_df[,md])) +
       ggplot2::geom_point(size=0.5) +
-      ggtitle(paste0("PCA_", fn_root, suffix )) + # Blank Title for the Graph
+      ggtitle(paste0("PCA_", opt$filename_root, suffix )) + # Blank Title for the Graph
       xlab(paste0("PC 1, ", round(my_var_exp[1],2)*100, "%")) +
       ylab(paste0("PC 2, ", round(my_var_exp[2],2)*100, "%")) +
       labs(color = md)
     print(g)
   }
-
 }
 
 dev.off()
-
-# , col = factor(meta_df[,mdc])
-
-# print("Checking for columns/chems with zero variance")
-# 
-# zero_var <- which(apply(mtbmcs_df, 2, var) == 0)
-# 
-# print(paste("Num with zero var:", length(zero_var)))
-# print("removing the following:")
-# print(paste(names(zero_var), collapse = ", "))
-# mtbmcs_df <- mtbmcs_df[, which(apply(mtbmcs_df, 2, var) != 0)]
 
 print("End R script.")
 
