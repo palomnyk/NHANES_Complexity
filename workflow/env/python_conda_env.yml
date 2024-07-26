@@ -13,6 +13,7 @@ channels:
 dependencies:
   - python=3.11 #3.11 is the latest python for conda on 1/19/2024
   - snakemake
+  - snakemake-executor-plugin-cluster-generic=1.0.9
   - numpy
   - matplotlib
   - scikit-learn
