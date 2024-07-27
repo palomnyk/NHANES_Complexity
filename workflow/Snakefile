@@ -1,5 +1,9 @@
 # Author: Aaron Yerke (aaronyerke@gmail.com)
 # Main snakemake file for running and re-running scripts
+# Wildcards can be {diet},{epoch},{transform},{test_column}
+# Data types can be "_data" for randome forest output
+
+
 # print("In snakefile.")
 configfile: "workflow/config/config.yaml"
 
@@ -14,10 +18,14 @@ import pandas as pd
 # test_diets = expand("Data/diet/{diet}", diet=diet_df.loc[:,"Diet_orgs"])
 # print(test_diets)
 epochs = ["2015", "2009-2020"]
-# Wildcards can be {diet},{epoch},{transform},{test_col}
-# Data types can be "_data" for randome forest output
+
 
 output_subdir="diet_test_d1d2"
+
+rule all:
+    input:
+        "output/unit_test/tables/rf_test_data.csv"
+
 # rule diet_org_comparison:
 #     conda:
 #         "env/python_conda_env.yml"
@@ -61,7 +69,7 @@ checkpoint create_test_rf_dataset:
         """
 
 
-# # input function for rule aggregate, return paths to all files produced by the checkpoint 'somestep'
+# input function for rule aggregate, return paths to all files produced by the checkpoint 'somestep'
 # def aggregate_input(wildcards):
 #     checkpoint_output = checkpoints.create_test_rf_dataset.output[1]
 #     print(checkpoint_output)
@@ -80,27 +88,30 @@ checkpoint create_test_rf_dataset:
 def get_test_resp_column_names(wildcards):
     df_path = checkpoints.create_test_rf_dataset.get(**wildcards).output[1]
     df = pd.read_csv(df_path, sep=",", header=0)
-    return expand("output/unit_test/1c{test_column}?rf_test_data.csv", test_column=df.columns.values)
+    return expand("output/unit_test/tables/1c{test_column}?rf_test_data.csv", test_column=df.columns.values)
 
 
 rule aggregate_test_rf_feature_data:
     input: get_test_resp_column_names
-    run:
-        print("expand_test_rest_colnames")
-        for i in {input}:
-            print("i")
+    output: "output/unit_test/tables/rf_test_data.csv"
+    shell:
+        """
+        Rscript --out_subdir unit_test --fn_root rf_test
+        """
 
 rule rf_test_dataset:
+    conda:"env/python_conda_env.yml"
     input:
         pred = "Data/unit_test/mtc_predictor.csv",
         resp = "Data/unit_test/mtc_response.csv"
     output:
-        "output/unit_test1/1c{test_column}?rf_test_data.csv"
+        "output/unit_test/tables/1c{test_column}?rf_test_data.csv"
     shell:
         """
             echo $PWD
-            echo {wildcards.test_column}
-            mkdir -p output/unit_test1
+            echo {wildcards.test_column:q}
+            mkdir -p output/unit_test
+            python --version
             python lib/scripts/ml/rf-resp_df.py \
                     --response_fn {input.resp} \
                     --delimeter , \
@@ -108,7 +119,7 @@ rule rf_test_dataset:
                     --out_folder unit_test1 \
                     --output_label rf_test \
                     --title rf_test \
-                    --response_col "{wildcards.test_column}"
+                    --response_col {wildcards.test_column:q}
         """
 
 # rule create_diets:
