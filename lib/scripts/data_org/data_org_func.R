@@ -154,33 +154,60 @@ min_max_trans <- function(df) {
 save_all_transforms <- function(out_dir, prefix, df,
                                 id_var = "Respondent sequence number" ) {
   print(paste("Creating transformations of", prefix))
+  df <- data.frame(df, check.names = FALSE)
   write.csv(df, file = file.path(out_dir, paste0(prefix,".csv")),
             row.names = FALSE)
-  row.names(df) <- df[,id_var]
-  print(ncol(df))
-  num_only <- df[,which(! names(df) %in% c(id_var))]
-  num_only[is.na(num_only)] <- 0
-  print(ncol(num_only))
-  print(paste("min/maxing", prefix))
-  # df_mm <- min_max_trans(num_only)
-  # df_mm[,id_var] <- row.names(num_only)
-  # write.csv(df_mm, file = file.path(out_dir, paste0(prefix,"_MM.csv")),
+  # row.names(df) <- df[,id_var]
+  # print(ncol(df))
+  # num_only <- df[,which(! names(df) %in% c(id_var))]
+  # num_only[is.na(num_only)] <- 0
+  # print(ncol(num_only))
+  # # print(paste("min/maxing", prefix))
+  # # df_mm <- min_max_trans(num_only)
+  # # df_mm[,id_var] <- row.names(num_only)
+  # # write.csv(df_mm, file = file.path(out_dir, paste0(prefix,"_MM.csv")),
+  # #           row.names = FALSE)
+  # # Z-score standardization, AKA (df - mean(df)) / sd(df)
+  # df_scale <- as.data.frame(scale(num_only, center = TRUE, scale = TRUE))
+  # df_scale[,id_var] <- row.names(num_only)
+  # write.csv(df_scale, file = file.path(out_dir, paste0(prefix,"_SCALE.csv")),
   #           row.names = FALSE)
-  # Z-score standardization, AKA (df - mean(df)) / sd(df)
-  df_scale <- as.data.frame(scale(num_only, center = TRUE, scale = TRUE))
-  df_scale[,id_var] <- row.names(num_only)
-  write.csv(df_scale, file = file.path(out_dir, paste0(prefix,"_SCALE.csv")),
-            row.names = FALSE)
-  print(paste("logging", prefix))
-  min_val <- min(num_only[num_only > 0])
-  # print(num_only)
-  num_only <- num_only + min_val/10
-  df_log <- log(num_only)
-  df_log[,id_var] <- row.names(num_only)
-  write.csv(df_log, file = file.path(out_dir, paste0(prefix,"_LOG.csv")),
-            row.names = FALSE)
+  # print(paste("logging", prefix))
+  # min_val <- min(num_only[num_only > 0])
+  # # print(num_only)
+  # num_only <- num_only + min_val/10
+  # df_log <- log(num_only)
+  # df_log[,id_var] <- row.names(num_only)
+  # write.csv(df_log, file = file.path(out_dir, paste0(prefix,"_LOG.csv")),
+  #           row.names = FALSE)
   print(paste("Saved 4 transformations of", prefix))
   # return(df_log)
+}
+
+cod_var <- c("a","b","b","b","c", "c")
+ids <- c(2,3,3,1,2,4)
+
+expected_df <- data.frame(cod_var_a = c(0,1,0,0),
+                          cod_var_b = c(1,0,2,0),
+                          cod_var_c = c(0,1,0,1),
+                          ids = c(1,2,3,4))
+
+fake_df <- data.frame(cod_var, ids)
+
+simple_dummy <- function(df, dummy_var, ids, join_symb) {
+  #Function to use in place of fastdummies dummyCols because it wasn't working 
+  #for my 2009-2020 dietary dataset.
+  df[,dummy_var] <- paste0( "_", df[,dummy_var])
+  dummy <- data.frame(model.matrix( ~ cod_var -1,
+                                    data = df),
+                      check.names = F)
+  dummy[,ids] <- df[,ids]
+  dummy <- aggregate(dummy, by = list(df[,ids]), FUN = sum)
+  dummy[,ids] <- dummy$Group.1#put correct labels back on ids column
+  drop_cols <- c(paste0(dummy_var, "_", "NA"), "Group.1")
+  dummy <- dummy[,!(names(dummy) %in% drop_cols)]#drop "Group.1" column and NA col
+  
+  return(dummy)
 }
 
 print("Functions loaded!")
