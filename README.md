@@ -27,20 +27,16 @@ snakemake --profile workflow/config
 
 `snakemake --dry-run`
 ##### Drawing diagram of workflow
-`snakemake --dag |dot -Tpdf > workflow/reports/dag.pdf`
+`snakemake --dag |dot -Tpdf > workflow/reports/dag_test.pdf`
 
 `snakemake --software-deployment-method conda --cores 1 rf_cardio_cat_g`
 
+conda env update --file workflow/config/config.yaml
 
 ### Getting V8+ of snakemake was challenging due to conflicting documentation.
 #### Useful links:
 #### https://stackoverflow.com/questions/77929511/how-to-run-snakemake-8-on-a-slurm-cluster
 `pip install snakemake-executor-plugin-cluster-generic`
 Run snakemake with this command:
-`snakemake \
-        --executor cluster-generic \
-        --jobs 1\
-        --cluster-generic-submit-cmd 'qsub -N {rule} -q all.q -l h_vmem=8G -pe smp {threads} -V -cwd'`
 
 snakemake --profile workflow/config/
-
