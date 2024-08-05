@@ -96,11 +96,14 @@ save_all_transforms(output_dir, "d1d2_food_g_2015", USDA_food_g_only)
 nutri_food_g <- merge(USDA_food_g_only, nutr_d1d2_diet_2015, by = id_var)
 save_all_transforms(output_dir, "d1d2_nutri_food_g_2015", nutri_food_g)
 
-USDA_food_simple <- subset(d1d2_diet_2015, select = c("USDA food code", id_var))
+USDA_food_simple <- data.frame(
+  subset(d1d2_diet_2015, select = c("USDA food code", id_var)), check.names = F)
 
 USDA_food_simple <- fastDummies::dummy_cols(USDA_food_simple,
                                               select_columns = c("USDA food code"),
                                               ignore_na = TRUE, remove_selected_columns = TRUE)
+
+USDA_food_simple$`USDA food code` <- as.character(USDA_food_simple$`USDA food code`)
 
 USDA_food_simple <- rowsum(USDA_food_simple,
                              group = USDA_food_simple[,id_var],na.rm=T, )
