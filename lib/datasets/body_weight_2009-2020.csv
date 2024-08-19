@@ -1,0 +1,16 @@
+year_start,year_end,dt_group,nh_table,column_short_name,column_long_name,our_name
+2009,2010,EXAM,BMX_F,BMXBMI,Body Mass Index (kg/m**2),bmi
+2009,2010,EXAM,BMX_F,BMXWT,Weight (kg),weight
+2009,2010,EXAM,BMX_F,BMXWAIST,Waist Circumference (cm),waist
+2011,2012,EXAM,BMX_G,BMXBMI,Body Mass Index (kg/m**2),bmi
+2011,2012,EXAM,BMX_G,BMXWT,Weight (kg),weight
+2011,2012,EXAM,BMX_G,BMXWAIST,Waist Circumference (cm),waist
+2013,2014,EXAM,BMX_H,BMXBMI,Body Mass Index (kg/m**2),bmi
+2013,2014,EXAM,BMX_H,BMXWT,Weight (kg),weight
+2013,2014,EXAM,BMX_H,BMXWAIST,Waist Circumference (cm),waist
+2015,2016,EXAM,BMX_I,BMXBMI,Body Mass Index (kg/m**2),bmi
+2015,2016,EXAM,BMX_I,BMXWT,Weight (kg),weight
+2015,2016,EXAM,BMX_I,BMXWAIST,Waist Circumference (cm),waist
+2017,2020,EXAM,P_BMX,BMXBMI,Body Mass Index (kg/m**2),bmi
+2017,2020,EXAM,P_BMX,BMXWT,Weight (kg),weight
+2017,2020,EXAM,P_BMX,BMXWAIST,Waist Circumference (cm),waist

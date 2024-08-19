@@ -1,0 +1,16 @@
+year_start,year_end,dt_group,nh_table,column_short_name,column_long_name,our_name
+2009,2010,DEMO,DEMO_F,RIAGENDR,Gender,gender
+2009,2010,DEMO,DEMO_F,RIDAGEYR,Age at Screening Adjudicated - Recode,age_years
+2009,2010,DEMO,DEMO_F,RIDRETH1,Race/Ethnicity - Recode,ethnicity
+2011,2012,DEMO,DEMO_G,RIAGENDR,Gender,gender
+2011,2012,DEMO,DEMO_G,RIDAGEYR,Age in years at screening,age_years
+2011,2012,DEMO,DEMO_G,RIDRETH1,Race/Hispanic origin,ethnicity
+2013,2014,DEMO,DEMO_H,RIAGENDR,Gender,gender
+2013,2014,DEMO,DEMO_H,RIDAGEYR,Age at Screening Adjudicated - Recode,age_years
+2013,2014,DEMO,DEMO_H,RIDRETH1,Race/Hispanic origin,ethnicity
+2015,2016,DEMO,DEMO_I,RIAGENDR,Gender,gender
+2015,2016,DEMO,DEMO_I,RIDAGEYR,Age at Screening Adjudicated - Recode,age_years
+2015,2016,DEMO,DEMO_I,RIDRETH1,Race/Ethnicity - Recode,ethnicity
+2017,2020,DEMO,P_DEMO,RIAGENDR,Gender,gender
+2017,2020,DEMO,P_DEMO,RIDAGEYR,Age at Screening Adjudicated - Recode,age_years
+2017,2020,DEMO,P_DEMO,RIDRETH1,Race/Ethnicity - Recode,ethnicity

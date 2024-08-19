@@ -25,14 +25,17 @@ diet_orgs = ["d1d2_nutr_only_2015.csv","d1d2_food_g","d1d2_nutri_food_g","d1d2_f
 "d1d2_nutri_food_g_cat_g","d1d2_nutri_food_cat"]
 transformations = ["", "_LOG", "_SCALE"]
 
-diet_orgs_no_cat = ["d1d2_nutr_only_2015.csv","d1d2_food_g.csv","d1d2_nutri_food_g","d1d2_food",\
-"d1d2_nutri_food"]
+# diet_orgs_no_cat = ["d1d2_nutr_only","d1d2_food_g","d1d2_nutri_food_g","d1d2_food",\
+# "d1d2_nutri_food"]
+diet_orgs_no_cat = ["d1d2_nutr_only","d1d2_food_g"]
 
 output_subdir="diet_test_d1d2"
 
 rule complete:
     input:
         "output/unit_test/tables/rf_test_data.csv",
+        expand("Data/diet/multi_year/{diet_org_no_cat}_2009-2020.csv", zip, diet_org_no_cat=diet_orgs_no_cat),
+        "Data/respns_vars/2009-2020cardio_respns_vars.csv"
         # os.path.join("output","diet_test_d1d2", "graphics", "all_diet_orgs.pdf"),
         # os.path.join("output","diet_test_d1d2", "graphics", "2009-2020_all_diet_orgs.pdf")
 
@@ -95,6 +98,9 @@ rule rf_test_dataset:
 
 checkpoint create_resp_2009_2020_dataset:
     conda:"env/python_conda_env.yml",
+    resources:
+        runtime=900, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
+        mem_mb=50000,
     output:
         "Data/respns_vars/2009-2020cardio_respns_vars.csv"
     shell:
@@ -104,44 +110,48 @@ checkpoint create_resp_2009_2020_dataset:
         Rscript "lib/scripts/data_org/org_multi_yr_resp_vars.R"
         """
 
-def get_2009_2020_resp_column_names(wildcards):
+def get_2009_2020_rf_resp_features(wildcards):
     df_path = checkpoints.create_resp_2009_2020_dataset.get(**wildcards).output[1]
     df = pd.read_csv(df_path, sep=",", header=0)
     return expand("output/diet_test_d1d2/tables/1c{resp_col_2009_2020}?{diet_org_no_cat}_2009-2020_data.csv", \
     zip, resp_col_2009_2020=df.columns.values, diet_org_no_cat=diet_orgs_no_cat)
 
-rule aggregate_2009_2020_rf_resp_features:
-    input: get_2009_2020_resp_column_names
-    output: "output/diet_test_d1d2/tables/{wildcards.diet_org_no_cat:q}_2009-2020_data.csv"
+rule get_2009_2020_rf_resp_features:
+    input: get_2009_2020_rf_resp_features
+
+rule aggregate_2009_2020_rf_data:
+    input: rules.get_test_rf_resp_features.input[0]
+    output: expand("output/diet_test_d1d2/tables/{diet_org_no_cat}_2009-2020_data.csv", diet_org_no_cat=diet_orgs_no_cat)
     shell:
         """
-        Rscript lib/scripts/data_org/combine_rf_data.R --out_subdir diet_2009-2020\
-         --fn_root {wildcards.diet_org_no_cat:q}_2009-2020
+            Rscript lib/scripts/data_org/combine_rf_data.R --out_subdir diet_2009-2020\
+                --fn_root {wildcards.diet_org_no_cat:q}_2009-2020
         """
 
-rule diet_org_2009_2020_comparison:
-    conda:
-        "env/python_conda_env.yml"
-    params:
-        output_subdir=output_subdir
-    input:
-        expand("output/diet_test_d1d2/tables/{diet_org_no_cat}_2009-2020_data.csv", diet_org_no_cat=diet_orgs_no_cat)
-    output:
-        os.path.join("output","diet_test_d1d2", "graphics", "2009-2020_all_diet_orgs.pdf")
-    shell:
-        """
-        python --version
-        Rscript lib/scripts/fig/diet_org_test_figure.R -o {params.output_subdir}
-        """
+# rule diet_org_2009_2020_comparison:
+#     conda:
+#         "env/python_conda_env.yml"
+#     params:
+#         output_subdir=output_subdir
+#     input:
+#         expand("output/diet_test_d1d2/tables/{diet_org_no_cat}_2009-2020_data.csv", diet_org_no_cat=diet_orgs_no_cat)
+#     output:
+#         os.path.join("output","diet_test_d1d2", "graphics", "2009-2020_all_diet_orgs.pdf")
+#     shell:
+#         """
+#         python --version
+#         Rscript lib/scripts/fig/diet_org_test_figure.R -o {params.output_subdir}
+#         """
 
 rule create_diets_2009_2020:
     conda:"env/python_conda_env.yml",
     input:
         script = os.path.join( "lib","scripts","data_org","import_org_multi_year_diet.R"),
     output:
-        expand("Data/diet/multi_year/d1d2_{diet_org}_2009-2020.csv", zip, diet_org=diet_orgs),
+        expand("Data/diet/multi_year/{diet_org_no_cat}_2009-2020.csv", diet_org_no_cat=diet_orgs_no_cat),
     resources:
-        runtime=500 #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
+        runtime=900, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
+        mem_mb=90000,
     shell:
         """
         Rscript {input.script}
@@ -150,12 +160,12 @@ rule create_diets_2009_2020:
 rule rf_2009_2020_datasets:
     conda:"env/python_conda_env.yml"
     input:
-        pred = "Data/diet/multi_year/d1d2_{wildcards.diet_org_no_cat:q}_2009-2020_data.csv",
+        pred = "Data/diet/multi_year/{wildcards.diet_org_no_cat:q}_2009-2020_data.csv",
         resp = "Data/respns_vars/2009-2020cardio_respns_vars.csv"
     output:
     #     expand("output/diet_test_d1d2/tables/1c{resp_col_2009_2020}?{diet_org_no_cat}_2009-2020_data.csv", \
     # zip, resp_col_2009_2020=wildcards.resp_col_2009_2020, diet_org_no_cat=wildcards.diet_org_no_cat)
-        "output/diet_test_d1d2/tables/1c{resp_col_2009-2020}?{diet_org_no_cat}_2009-2020_data.csv"
+        "output/diet_test_d1d2/tables/1col{resp_col_2009-2020}?{diet_org_no_cat}_2009-2020_data.csv"
     shell:
         """
             echo $PWD
@@ -172,78 +182,97 @@ rule rf_2009_2020_datasets:
                     --response_col {wildcards.test_column:q}
         """
 
-rule diet_org_2015_comparison:
-    conda:
-        "env/python_conda_env.yml"
-    params:
-        output_subdir=output_subdir
-    input:
-        expand("output/diet_test_d1d2/tables/{diet_org}_data.csv", diet_org=diet_orgs)
+rule build_2009_2020_bodyweight_resp:
+    conda:"env/python_conda_env.yml"
+    input:"lib/datasets/body_weight_2009-2020.csv"
     output:
-        os.path.join("output","diet_test_d1d2", "graphics", "all_diet_orgs.pdf")
     shell:
-        """
-        python --version
-        Rscript lib/scripts/fig/diet_org_test_figure.R -o {params.output_subdir}
-        """
-
-rule create_diets_2015:
-    conda:"env/python_conda_env.yml",
-    input:
-        script = os.path.join( "lib","scripts","data_org","import_org_diet.R"),
-        food_codes = os.path.join("Data", "diet", "WWEIA1516_foodcat_FNDDS.xlsx"),
-    output:
-        expand("Data/diet/d1d2_{diet_org}_2015.csv", diet_org=diet_orgs),
-    resources:
-        runtime=240 #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
+    """
+    Rscript 
+    """
+    
+rule build_2009_2020_demo:
+    conda:"env/python_conda_env.yml"
+    input:"lib/datasets/demo_2009_2020.csv"
+    output:"Data/demo/demo_2009-2020.csv"
     shell:
-        """
-        Rscript {input.script}
-        """
+    """
+    Rscript lib/scripts/data_org/org_2009-2020_demo.R
+    """
 
-checkpoint create_resp_var_table_2015:
-    conda: "env/python_conda_env.yml",
-    input:
-        os.path.join("Data","respns_vars", "response_features_tables.csv")
-    output:
-        os.path.join("Data","respns_vars", "cardio_respns_vars.csv")
-    resources:
-        runtime="24:00:00" #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
-    shell:
-        """
-        Rscript ./lib/scripts/data_org/organize_resp_vars.R
-        """
 
-def get_2015_resp_features(wildcards):
-    df_path = checkpoints.create_resp_var_table_2015.get(**wildcards).output[0]
-    df = pd.read_csv(df_path, sep=",", header=0)
-    return expand("output/unit_test/tables/1c{resp_2015}?rf_test_data.csv", resp_2015=df.columns.values)
+# rule diet_org_2015_comparison:
+#     conda:
+#         "env/python_conda_env.yml"
+#     params:
+#         output_subdir=output_subdir
+#     input:
+#         expand("output/diet_test_d1d2/tables/{diet_org}_data.csv", diet_org=diet_orgs)
+#     output:
+#         os.path.join("output","diet_test_d1d2", "graphics", "all_diet_orgs.pdf")
+#     shell:
+#         """
+#         python --version
+#         Rscript lib/scripts/fig/diet_org_test_figure.R -o {params.output_subdir}
+#         """
 
-rule aggregate_2015_rf_resp_features:
-    input: get_2015_resp_features
-    output: "output/unit_test/tables/rf_test_data.csv"
-    shell:
-        """
-        Rscript --out_subdir diet_d1d2_2015 --fn_root {wildcards.diet_org_no_cat:q}_2015
-        """
+# rule create_diets_2015:
+#     conda:"env/python_conda_env.yml",
+#     input:
+#         script = os.path.join( "lib","scripts","data_org","import_org_diet.R"),
+#         food_codes = os.path.join("Data", "diet", "WWEIA1516_foodcat_FNDDS.xlsx"),
+#     output:
+#         expand("Data/diet/d1d2_{diet_org}_2015.csv", diet_org=diet_orgs),
+#     resources:
+#         runtime=240 #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
+#     shell:
+#         """
+#         Rscript {input.script}
+#         """
 
-rule rf_cardio_cat_g:
-    input:
-        resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
-        diet_data = os.path.join("Data","diet", "d1d2_cat_g_2015.csv")
-    resources:
-        runtime="24:00:00" #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
-    conda:"python_conda_env.yml",
-    output:
-        os.path.join("output","diet","tables","cat_grams_data.csv"),
-        os.path.join("output", "diet", "tables", "ave_feat_imp_cat_grams.csv")
-    shell:
-        """
-        python lib/scripts/ml/rf-resp_df.py \
-            --response_fn Data/respns_vars/cardio_respns_vars.csv \
-            --delimeter , \
-            --pred_path Data/diet/d1d2_cat_g_2015.csv \
-            --out_folder diet_test_d1d2 \
-            --output_label cat_grams_d1d2 \
-            --title cat_grams
-        """
+# checkpoint create_resp_var_table_2015:
+#     conda: "env/python_conda_env.yml",
+#     input:
+#         os.path.join("Data","respns_vars", "response_features_tables.csv")
+#     output:
+#         os.path.join("Data","respns_vars", "cardio_respns_vars.csv")
+#     resources:
+#         runtime="24:00:00" #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
+#     shell:
+#         """
+#         Rscript ./lib/scripts/data_org/organize_resp_vars.R
+#         """
+
+# def get_2015_resp_features(wildcards):
+#     df_path = checkpoints.create_resp_var_table_2015.get(**wildcards).output[0]
+#     df = pd.read_csv(df_path, sep=",", header=0)
+#     return expand("output/unit_test/tables/1c{resp_2015}?rf_test_data.csv", resp_2015=df.columns.values)
+
+# rule aggregate_2015_rf_resp_features:
+#     input: get_2015_resp_features
+#     output: "output/unit_test/tables/rf_test_data.csv"
+#     shell:
+#         """
+#         Rscript --out_subdir diet_d1d2_2015 --fn_root {wildcards.diet_org_no_cat:q}_2015
+#         """
+
+# rule rf_cardio_cat_g:
+#     input:
+#         resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
+#         diet_data = os.path.join("Data","diet", "d1d2_cat_g_2015.csv")
+#     resources:
+#         runtime="24:00:00" #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
+#     conda:"python_conda_env.yml",
+#     output:
+#         os.path.join("output","diet","tables","cat_grams_data.csv"),
+#         os.path.join("output", "diet", "tables", "ave_feat_imp_cat_grams.csv")
+#     shell:
+#         """
+#         python lib/scripts/ml/rf-resp_df.py \
+#             --response_fn Data/respns_vars/cardio_respns_vars.csv \
+#             --delimeter , \
+#             --pred_path Data/diet/d1d2_cat_g_2015.csv \
+#             --out_folder diet_test_d1d2 \
+#             --output_label cat_grams_d1d2 \
+#             --title cat_grams
+#         """
