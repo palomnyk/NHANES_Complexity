@@ -61,7 +61,7 @@ for (ut in 1:length(uniq_tables)){
   else full_table <- rbind(full_table, dl_tble)
 }
 
-write.csv(full_table, file = file.path(output_dir, "bodyweight_2009-2020.csv"),
+write.csv(full_table[,target_names], file = file.path(output_dir, "bodyweight_2009-2020.csv"),
           row.names = FALSE)
 
 print("End R script.")

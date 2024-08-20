@@ -72,8 +72,6 @@ for (rw in 1:nrow(import_table)){
   d1d2_diet <- type.convert(d1d2_diet, as.is = TRUE)#Reset column types automatically (for factors)
   unique_resp_ids <- sum(c(unique_resp_ids, 
                            length(unique(d1d2_diet$`Respondent sequence number`))))
-  print(paste("nrow ncol d1:", nrow(d1_diet), ncol(d1_diet)))
-  print(paste("nrow ncol d2:", nrow(d2_diet), ncol(d2_diet)))
   print(paste("nrow ncol d1d2:", nrow(d1d2_diet), ncol(d1d2_diet)))
   print(paste("nrow ncol multi:", nrow(multi_yr_diet), ncol(multi_yr_diet)))
   
@@ -112,7 +110,7 @@ nutr_multi_yr_diet <- rowsum(multi_yr_diet[,nutr_vars],
                        group = multi_yr_diet[,id_var], na.rm=T)
 nutr_multi_yr_diet[,id_var] <- row.names(nutr_multi_yr_diet)
 
-save_all_transforms(output_dir, "d1d2_nutr_only_2009-2020", nutr_multi_yr_diet)
+save_all_transforms(output_dir, "d1_nutr_only_2009-2020", nutr_multi_yr_diet)
 # multi_yr_diet <- multi_yr_diet[, !sapply(multi_yr_diet, is.factor)]
 #Make food grams dummys
 USDA_food_g_only <- two_column_dummy(data.frame(multi_yr_diet, check.names = F),
@@ -121,11 +119,11 @@ USDA_food_g_only <- two_column_dummy(data.frame(multi_yr_diet, check.names = F),
                     count_colnm = "Gram weight of the food/individual component")
 print(paste("Number of adult diet participants:", nrow(USDA_food_g_only)))
 
-save_all_transforms(output_dir, "d1d2_food_g_2009-2020", USDA_food_g_only)
+save_all_transforms(output_dir, "d1_food_g_2009-2020", USDA_food_g_only)
 
 nutri_food_g <- data.frame(merge(USDA_food_g_only, nutr_multi_yr_diet, by = id_var),
                            check.names=FALSE)
-save_all_transforms(output_dir, "d1d2_nutri_food_g_2009-2020", nutri_food_g)
+save_all_transforms(output_dir, "d1_nutri_food_g_2009-2020", nutri_food_g)
 
 USDA_food_simple <- data.frame(subset(multi_yr_diet, select = c("food_name", id_var)),
                                check.names = FALSE)
@@ -135,10 +133,10 @@ USDA_food_simple <- simple_dummy(USDA_food_simple, "food_name", id_var, "_")
 USDA_food_simple <- rowsum(USDA_food_simple,
                              group = USDA_food_simple[,id_var],na.rm=T, )
 USDA_food_simple[,id_var] <- row.names(USDA_food_simple)
-save_all_transforms(output_dir, "d1d2_food_2009-2020", USDA_food_simple)
+save_all_transforms(output_dir, "d1_food_2009-2020", USDA_food_simple)
 
 nutri_food_simple <- merge(USDA_food_simple, nutr_multi_yr_diet, by = id_var)
-save_all_transforms(output_dir, "d1d2_nutri_food_2009-2020", nutri_food_simple)
+save_all_transforms(output_dir, "d1_nutri_food_2009-2020", nutri_food_simple)
 
 #### Food categories ####
 # cat_g_only <- two_column_dummy(d1d2_diet_2015,

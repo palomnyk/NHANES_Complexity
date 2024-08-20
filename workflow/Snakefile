@@ -200,6 +200,35 @@ rule build_2009_2020_demo:
     Rscript lib/scripts/data_org/org_2009-2020_demo.R
     """
 
+rule bodyweight_feature_correlation:
+    conda:"env/python_conda_env.yml"
+    input:"Data/exam/bodyweight_2009-2020.csv"
+    output:
+    shell:
+    """
+    Rscript lib/scripts/descriptive/feature_correlations.R \
+      --out_subdir diet_test_d1d2 \
+      --pred_col bmi \
+      --resp_df {input[0]}
+    """
+    Rscript lib/scripts/descriptive/feature_correlations.R \
+      --out_subdir diet_test_d1d2 \
+      --pred_col "Energy (kcal" \
+      --resp_df Data/exam/bodyweight_2009-2020.csv
+
+    Rscript lib/scripts/descriptive/feature_correlations.R \
+      --out_subdir diet_test_d1d2 \
+      --pred_col "Caffeine (mg"
+
+    Rscript lib/scripts/descriptive/feature_correlations.R \
+      --out_subdir diet_test_d1d2 \
+      --pred_col "Total sugars (gm" \
+      --resp_df Data/exam/bodyweight_2009-2020.csv
+
+Rscript lib/scripts/descriptive/feature_correlations.R \
+      --out_subdir diet_test_d1d2 \
+      --pred_col "Total fat (gm" \
+      --resp_df Data/exam/bodyweight_2009-2020.csv
 
 # rule diet_org_2015_comparison:
 #     conda:

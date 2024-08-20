@@ -55,6 +55,9 @@ print(opt)
 
 #### Establish directory layout and other constants ####
 output_dir <- file.path("output", opt$out_subdir)
+dir.create( output_dir)
+dir.create( file.path(output_dir, "graphics"))
+dir.create( file.path(output_dir, "tables"))
 
 numeric_only <- c("Total Cholesterol (mg/dL","Triglyceride (mg/dL", 
                   "LDL-cholesterol (mg/dL","Direct HDL-Cholesterol (mg/dL",
@@ -64,6 +67,8 @@ id_var <- "Respondent sequence number"
 #### Loading in data ####
 demo_2009_2020 <- read.csv("Data/demo/demo_2009-2020.csv", header = TRUE,
                            check.names = FALSE)
+# diet_df <- read.csv("Data/diet/multi_year/d1d2_nutr_only_2009-2020.csv",
+#                     header = TRUE, check.names = FALSE)
 diet_df <- read.csv("Data/diet/multi_year/d1d2_nutr_only_2009-2020.csv",
                     header = TRUE, check.names = FALSE)
 cardio_df <- read.csv(opt$resp_df, header = TRUE,check.names = FALSE)
@@ -75,7 +80,7 @@ genders <- unique(demo_2009_2020[,"gender"])
 ethnicities <- unique(demo_2009_2020[,"ethnicity"])
 num_rows <- length(ethnicities) * length(age_low_range)
 
-base_fn <- basename(opt$resp_df)
+base_fn <- sub('\\.csv$', '', basename(opt$resp_df))
 
 pdf(file = file.path(output_dir, "graphics", paste0(base_fn,"_VS_",opt$pred_col, ".pdf")))
 for (r in 1:ncol(cardio_df)) {
@@ -130,29 +135,29 @@ for (r in 1:ncol(cardio_df)) {
   }# for g
 }#r
 dev.off()
-create_plot(diet_df, opt$pred_col, cardio_df, "Systolic_mean", id_var, "No subsets")
+# create_plot(diet_df, opt$pred_col, cardio_df, "Systolic_mean", id_var, "No subsets")
 
-# sub_demo <- demo_2009_2020[demo_2009_2020$gender == "Male" &
-#                              demo_2009_2020$age >= 18,]
-# sub_diet <- diet_df[diet_df[,id_var] %in% sub_demo$`Respondent sequence number`,]
-# create_plot(sub_diet, opt$pred_col, cardio_df, "Systolic_mean", id_var, 
-#             "All male adults")
-# 
-# sub_demo <- demo_2009_2020[demo_2009_2020$gender == "Female" &
-#                              demo_2009_2020$age >= 18,]
-# sub_diet <- diet_df[diet_df[,id_var] %in% sub_demo$`Respondent sequence number`,]
-# create_plot(sub_diet, opt$pred_col, cardio_df, "Systolic_mean", id_var, 
-#             "All female adults")
-# 
-# sub_demo <- demo_2009_2020[demo_2009_2020$gender == "Female" &
-#                              demo_2009_2020$age >= 60,]
-# sub_diet <- diet_df[diet_df[,id_var] %in% sub_demo$`Respondent sequence number`,]
-# create_plot(sub_diet, opt$pred_col, cardio_df, "Systolic_mean", id_var, 
-#             "Females 60 and older")
-# 
-# sub_demo <- demo_2009_2020[demo_2009_2020$gender == "Male" &
-#                              demo_2009_2020$age >= 70,]
-# sub_diet <- diet_df[diet_df[,id_var] %in% sub_demo$`Respondent sequence number`,]
-# create_plot(sub_diet, opt$pred_col, cardio_df, "Systolic_mean", id_var, 
-#             "Males 70 and older")
+sub_demo <- demo_2009_2020[demo_2009_2020$gender == "Male" &
+                             demo_2009_2020$age >= 18,]
+sub_diet <- diet_df[diet_df[,id_var] %in% sub_demo$`Respondent sequence number`,]
+create_plot(sub_diet, opt$pred_col, cardio_df, "Systolic_mean", id_var,
+            "All male adults")
+
+sub_demo <- demo_2009_2020[demo_2009_2020$gender == "Female" &
+                             demo_2009_2020$age >= 18,]
+sub_diet <- diet_df[diet_df[,id_var] %in% sub_demo$`Respondent sequence number`,]
+create_plot(sub_diet, opt$pred_col, cardio_df, "Systolic_mean", id_var,
+            "All female adults")
+
+sub_demo <- demo_2009_2020[demo_2009_2020$gender == "Female" &
+                             demo_2009_2020$age >= 60,]
+sub_diet <- diet_df[diet_df[,id_var] %in% sub_demo$`Respondent sequence number`,]
+create_plot(sub_diet, opt$pred_col, cardio_df, "Systolic_mean", id_var,
+            "Females 60 and older")
+
+sub_demo <- demo_2009_2020[demo_2009_2020$gender == "Male" &
+                             demo_2009_2020$age >= 70,]
+sub_diet <- diet_df[diet_df[,id_var] %in% sub_demo$`Respondent sequence number`,]
+create_plot(sub_diet, opt$pred_col, cardio_df, "Systolic_mean", id_var,
+            "Males 70 and older")
 print("End of R script!")
