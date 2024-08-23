@@ -128,7 +128,9 @@ save_all_transforms(output_dir, "d1_nutri_food_g_2009-2020", nutri_food_g)
 USDA_food_simple <- data.frame(subset(multi_yr_diet, select = c("food_name", id_var)),
                                check.names = FALSE)
 
-USDA_food_simple <- simple_dummy(USDA_food_simple, "food_name", id_var, "_")
+USDA_food_simple <- fastDummies::dummy_cols(USDA_food_simple,
+                                            select_columns = c("USDA food code"),
+                                            ignore_na = TRUE, remove_selected_columns = TRUE)
 
 USDA_food_simple <- rowsum(USDA_food_simple,
                              group = USDA_food_simple[,id_var],na.rm=T, )
