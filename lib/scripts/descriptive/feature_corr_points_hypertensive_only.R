@@ -86,60 +86,71 @@ num_rows <- length(ethnicities) * length(age_low_range)
 resp_base_fn <- sub('\\.csv$', '', basename(opt$resp_df))
 diet_base_fn <- sub('\\.csv$', '', basename(opt$diet_df))
 
-pdf(file = file.path(output_dir, "graphics", paste0("scatt_", resp_base_fn,"_VS_",opt$pred_col, ".pdf")))
-for (r in 1:ncol(cardio_df)) {
-  resp_col <- names(cardio_df)[r]
-  for (g in 1:length(genders)){
-    # Create data to fill in
-    age_range_ord <- character(length = length(age_low_range))#for order in factor level
-    sub_demo <- demo_2009_2020[demo_2009_2020$gender == genders[g],]
-    shared_seqs <- intersect(diet_df[!is.na(diet_df[,]),id_var],
-                             cardio_df[!is.na(cardio_df[,resp_col]),id_var])
-    shared_seqs <- intersect(shared_seqs, sub_demo$`Respondent sequence number`)
-    row_count <- 1
-    for (a in 1:length(age_low_range)){
-      age_range <- paste0(age_low_range[a], "-", as.integer(age_upper_ranges[a])-1)
-      age_range_ord[a] <- age_range
+bool_cardio_df <- Filter(is.logical, cardio_df)
+num_cardio_df <- Filter(is.numeric, cardio_df)
 
-    }# for a
-    for (e in 1:length(ethnicities)){
-      # cor_table$age_range[row_count] <- age_range
-      # cor_table$ethnicities[row_count] <- ethnicities[e]
-      # cor_table$pearson[row_count] <- my_cor^2
-      # row_count <- row_count + 1
-    }# for e
-    # cor_table$age_range <- factor(cor_table$age_range, levels = age_range_ord)
-    diet_col <- diet_df[diet_df[,id_var] %in% shared_seqs,opt$pred_col]
-    cardio_col <- cardio_df[cardio_df[,id_var] %in% shared_seqs,resp_col]
-    my_cor <- cor(diet_col, 
-                  cardio_col,
-                  method = "kendall")
-    big_table <- cbind(diet_col, cardio_col)
-    big_table <- cbind(big_table,
-                       sub_demo[sub_demo[,id_var]%in% shared_seqs,])
-    p <- ggplot2::ggplot(big_table, aes(x = diet_col, y=cardio_col, color = ethnicity)) +
-      ggplot2::geom_point(size = 0.5) +
-      geom_smooth(method=lm, aes(fill=ethnicity)) +
-      ggplot2::xlab(opt$pred_col) +
-      ggplot2::ylab(paste(resp_col)) +
-      ggplot2::theme_minimal() +
-      ggplot2::labs(title=paste0(genders[g], ": ", resp_col, " VS ", opt$pred_col,
-                                 "\nOveerall Kendall R^2: ",
-                                 round(my_cor, 4)),
-           subtitle=diet_base_fn) +
-      ggplot2::theme(axis.line = element_line(color="black"),
-                     axis.ticks = element_line(color="black"),
-                     panel.border = element_blank(),
-                     axis.text.x = element_text(angle = 45, hjust=1),
-                     text=element_text(size=15), #change font size of all text
-                     axis.text=element_text(size=15), #change font size of axis text
-                     axis.title=element_text(size=17), #change font size of axis titles
-                     plot.title=element_text(size=17), #change font size of plot title
-                     legend.text=element_text(size=9), #change font size of legend text
-                     legend.title=element_text(size=11)) #change font size of legend title
-    print(p)
-  }# for g
-}#r
+pdf(file = file.path(output_dir, "graphics",
+                     paste0("scatt_tf_split_", diet_base_fn,"|",resp_base_fn,"_VS_",opt$pred_col, ".pdf")),
+    width = 10)
+for (b in 1:ncol(bool_cardio_df)){
+  bool_col <- names(bool_cardio_df)[b]
+  for (r in 1:ncol(num_cardio_df)) {
+    resp_col <- names(num_cardio_df)[r]
+    for (g in 1:length(genders)){
+      # Create data to fill in
+      age_range_ord <- character(length = length(age_low_range))#for order in factor level
+      sub_demo <- demo_2009_2020[demo_2009_2020$gender == genders[g],]
+      shared_seqs <- intersect(diet_df[!is.na(diet_df[,]),id_var],
+                               num_cardio_df[!is.na(num_cardio_df[,resp_col]) &
+                                             bool_cardio_df[,bool_col] == TRUE
+                                             ,id_var])
+      shared_seqs <- intersect(shared_seqs, sub_demo$`Respondent sequence number`)
+      row_count <- 1
+      for (a in 1:length(age_low_range)){
+        age_range <- paste0(age_low_range[a], "-", as.integer(age_upper_ranges[a])-1)
+        age_range_ord[a] <- age_range
+  
+      }# for a
+      for (e in 1:length(ethnicities)){
+        # cor_table$age_range[row_count] <- age_range
+        # cor_table$ethnicities[row_count] <- ethnicities[e]
+        # cor_table$pearson[row_count] <- my_cor^2
+        # row_count <- row_count + 1
+      }# for e
+      # cor_table$age_range <- factor(cor_table$age_range, levels = age_range_ord)
+      diet_col <- diet_df[diet_df[,id_var] %in% shared_seqs,opt$pred_col]
+      cardio_col <- num_cardio_df[num_cardio_df[,id_var] %in% shared_seqs,resp_col]
+      my_cor <- cor(diet_col, 
+                    cardio_col,
+                    method = "kendall")
+      big_table <- cbind(diet_col, cardio_col)
+      big_table <- cbind(big_table,
+                         sub_demo[sub_demo[,id_var]%in% shared_seqs,])
+      p <- ggplot2::ggplot(big_table, aes(x = diet_col, y=cardio_col, color = ethnicity)) +
+        ggplot2::geom_point(size = 0.5) +
+        # geom_smooth(method=lm, aes(fill=ethnicity)) +
+        geom_smooth(method=lm, se=FALSE) +
+        ggplot2::xlab(opt$pred_col) +
+        ggplot2::ylab(paste(resp_col)) +
+        ggplot2::theme_minimal() +
+        ggplot2::labs(title=paste0(genders[g], ": ", resp_col, " VS ", opt$pred_col,
+                                   "\nOverall Kendall R^2: ",
+                                   round(my_cor^2, 4),", cor:",round(my_cor, 4)),
+             subtitle=paste(diet_base_fn, bool_col, "only")) +
+        ggplot2::theme(axis.line = element_line(color="black"),
+                       axis.ticks = element_line(color="black"),
+                       panel.border = element_blank(),
+                       axis.text.x = element_text(angle = 45, hjust=1),
+                       text=element_text(size=15), #change font size of all text
+                       axis.text=element_text(size=15), #change font size of axis text
+                       axis.title=element_text(size=17), #change font size of axis titles
+                       plot.title=element_text(size=17), #change font size of plot title
+                       legend.text=element_text(size=12), #change font size of legend text
+                       legend.title=element_text(size=13)) #change font size of legend title
+      print(p)
+    }# for g
+  }#r
+}# b
 dev.off()
 
 print("End of R script!")
