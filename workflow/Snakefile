@@ -211,58 +211,7 @@ rule bodyweight_feature_correlation:
       --pred_col bmi \
       --resp_df {input[0]}
     """
-    Rscript lib/scripts/descriptive/feature_correlations.R \
-      --out_subdir diet_test_d1d2 \
-      --pred_col "Energy (kcal" \
-      --resp_df Data/exam/bodyweight_2009-2020.csv
-
-    Rscript lib/scripts/descriptive/feature_correlations.R \
-      --out_subdir diet_test_d1d2 \
-      --pred_col "Caffeine (mg"
-
-    Rscript lib/scripts/descriptive/feature_correlations.R \
-      --out_subdir diet_test_d1d2 \
-      --pred_col "Total sugars (gm" \
-      --resp_df Data/exam/bodyweight_2009-2020.csv
-
-Rscript lib/scripts/descriptive/feature_correlations.R \
-      --out_subdir diet_test_d1d2 \
-      --pred_col "Total fat (gm" \
-      --resp_df Data/exam/bodyweight_2009-2020.csv
-
-Rscript lib/scripts/descriptive/feature_correlations.R \
-    --out_subdir feature_correlations \
-    --pred_col "Total sugars (gm" \
-    --resp_df Data/exam/bodyweight_2009-2020.csv \
-    --diet_df Data/diet/d1_nutr_only_2015.csv
-
-Rscript lib/scripts/descriptive/feature_correlations.R \
-    --out_subdir feature_correlations \
-    --pred_col "Energy (kcal" \
-    --resp_df Data/exam/bodyweight_2009-2020.csv \
-    --diet_df Data/diet/d1_nutr_only_2015.csv
-
-Rscript lib/scripts/descriptive/feature_correlations.R \
-    --out_subdir feature_correlations \
-    --diet_df Data/diet/d1_nutr_only_2015.csv
-
-Rscript lib/scripts/descriptive/feature_correlations.R \
-    --out_subdir feature_correlations \
-    --pred_col "Caffeine (mg" \
-    --diet_df Data/diet/d1_nutr_only_2015.csv
-
-
-Rscript lib/scripts/descriptive/feature_corr_points.R \
-    --out_subdir feature_correlations \
-    --pred_col "Energy (kcal" \
-    --resp_df Data/exam/bodyweight_2009-2020.csv \
-    --diet_df Data/diet/d1_nutr_only_2015.csv
-
-Rscript lib/scripts/descriptive/feature_corr_points.R \
-    --out_subdir feature_correlations \
-    --pred_col "Caffeine (mg" \
-    --resp_df Data/exam/bodyweight_2009-2020.csv \
-    --diet_df Data/diet/d1_nutr_only_2015.csv
+S
 # rule diet_org_2015_comparison:
 #     conda:
 #         "env/python_conda_env.yml"

@@ -40,3 +40,129 @@ conda env update --file workflow/config/config.yaml
 Run snakemake with this command:
 
 snakemake --profile workflow/config/
+
+
+old commands:
+    Rscript lib/scripts/descriptive/feature_correlations.R \
+      --out_subdir diet_test_d1d2 \
+      --pred_col "Energy (kcal" \
+      --resp_df Data/exam/bodyweight_2009-2020.csv
+
+    Rscript lib/scripts/descriptive/feature_correlations.R \
+      --out_subdir diet_test_d1d2 \
+      --pred_col "Caffeine (mg"
+
+    Rscript lib/scripts/descriptive/feature_correlations.R \
+      --out_subdir diet_test_d1d2 \
+      --pred_col "Total sugars (gm" \
+      --resp_df Data/exam/bodyweight_2009-2020.csv
+
+Rscript lib/scripts/descriptive/feature_correlations.R \
+      --out_subdir diet_test_d1d2 \
+      --pred_col "Total fat (gm" \
+      --resp_df Data/exam/bodyweight_2009-2020.csv
+
+Rscript lib/scripts/descriptive/feature_correlations.R \
+    --out_subdir feature_correlations \
+    --pred_col "Total sugars (gm" \
+    --resp_df Data/exam/bodyweight_2009-2020.csv \
+    --diet_df Data/diet/d1_nutr_only_2015.csv
+
+Rscript lib/scripts/descriptive/feature_correlations.R \
+    --out_subdir feature_correlations \
+    --pred_col "Energy (kcal" \
+    --resp_df Data/exam/bodyweight_2009-2020.csv \
+    --diet_df Data/diet/d1_nutr_only_2015.csv
+
+Rscript lib/scripts/descriptive/feature_correlations.R \
+    --out_subdir feature_correlations \
+    --diet_df Data/diet/d1_nutr_only_2015.csv
+
+Rscript lib/scripts/descriptive/feature_correlations.R \
+    --out_subdir feature_correlations \
+    --pred_col "Caffeine (mg" \
+    --diet_df Data/diet/d1_nutr_only_2015.csv
+
+
+Rscript lib/scripts/descriptive/feature_corr_points.R \
+    --out_subdir feature_correlations \
+    --pred_col "Energy (kcal" \
+    --resp_df Data/exam/bodyweight_2009-2020.csv \
+    --diet_df Data/diet/d1_nutr_only_2015.csv \
+    --outlier_percent 0.03
+
+Rscript lib/scripts/descriptive/feature_corr_points.R \
+    --out_subdir feature_correlations \
+    --pred_col "Energy (kcal" \
+    --resp_df Data/exam/bodyweight_2009-2020.csv \
+    --diet_df Data/diet/d1d2_nutr_only_2015.csv \
+    --outlier_percent 0.03
+
+Rscript lib/scripts/descriptive/feature_corr_points.R \
+    --out_subdir feature_correlations \
+    --pred_col "Energy (kcal" \
+    --resp_df Data/exam/bodyweight_2009-2020.csv \
+    --diet_df Data/diet/multi_year/d1_nutr_only_2009-2020.csv
+
+Rscript lib/scripts/descriptive/feature_corr_points.R \
+    --out_subdir feature_correlations \
+    --pred_col "Caffeine (mg" \
+    --diet_df Data/diet/d1_nutr_only_2015.csv
+
+Rscript lib/scripts/descriptive/feature_corr_points_hypertensive_only.R \
+    --out_subdir feature_correlations \
+    --pred_col "Caffeine (mg" \
+    --diet_df Data/diet/d1_nutr_only_2015.csv
+
+Rscript lib/scripts/descriptive/feature_corr_points_hypertensive_only.R \
+    --out_subdir feature_correlations \
+    --diet_df Data/diet/d1_nutr_only_2015.csv
+
+Rscript lib/scripts/descriptive/feature_corr_points.R \
+    --out_subdir feature_correlations \
+    --pred_col "Atwater_gen_energy" \
+    --resp_df Data/diet/d1_nutr_only_2015.csv \
+    --diet_df Data/diet/d1_nutr_only_2015.csv \
+    --outlier_percent 0.03
+
+Rscript lib/scripts/descriptive/feature_corr_points.R \
+    --out_subdir feature_correlations \
+    --pred_col "Systolic_mean" \
+    --resp_df Data/respns_vars/2009-2020cardio_respns_vars.csv\
+    --diet_df Data/respns_vars/2009-2020cardio_respns_vars.csv\
+    --outlier_percent 0.01
+
+Rscript lib/scripts/descriptive/feature_corr_points.R \
+    --out_subdir feature_correlations \
+    --pred_col "LDL-cholesterol (mg/dL" \
+    --resp_df Data/respns_vars/2009-2020cardio_respns_vars.csv \
+    --diet_df Data/respns_vars/2009-2020cardio_respns_vars.csv \
+    --outlier_percent 0.01
+
+
+python lib/scripts/ml/rf-resp_df.py \
+        --response_fn Data/respns_vars/2009-2020cardio_respns_vars.csv \
+        --delimeter , \
+        --pred_path Data/diet/d1_nutr_only_2015_old.csv  \
+        --out_folder feature_correlations \
+        --output_label "Atwater_gen_energy" \
+        --title "Atwater_gen_energy" \
+        --response_col "Atwater_gen_energy"
+
+python lib/scripts/ml/rf-resp_df.py \
+        --response_fn Data/respns_vars/2009-2020cardio_respns_vars.csv \
+        --delimeter , \
+        --pred_path Data/respns_vars/2009-2020cardio_respns_vars_no_diastolic.csv \
+        --out_folder feature_correlations \
+        --output_label "Diastolic_mean" \
+        --title "Diastolic_mean" \
+        --response_col "Diastolic_mean"
+
+python lib/scripts/ml/rf-resp_df.py \
+        --response_fn Data/respns_vars/2009-2020cardio_respns_vars.csv \
+        --delimeter , \
+        --pred_path Data/respns_vars/2009-2020cardio_respns_vars_noLDL.csv \
+        --out_folder feature_correlations \
+        --output_label "LDL-cholesterol (mg/dL" \
+        --title "LDL-cholesterol (mg/dL" \
+        --response_col "LDL-cholesterol (mg/dL"
