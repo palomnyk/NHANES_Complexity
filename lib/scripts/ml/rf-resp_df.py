@@ -52,9 +52,6 @@ parser.add_argument("-e", "--pred_path", dest="pred_table",
 				  default = "output/tables/diet_2015.csv",
                   help="path, relative to cwd, to table with predictor/explanatory/independant vars",
 				  metavar="pred_table")
-parser.add_argument("-m", "--metadata_cols",
-                  action="store_false", dest="meta_col",
-                  help="Metadata columns to analyse")
 parser.add_argument("-o", "--output_label", default="py_rf",
 				  dest="output_label",
                   help="base label for output files (additional info will be added to it)")
@@ -138,6 +135,7 @@ id_list = response_df.loc[:,options.id_var]
 
 #output files
 output_label = f"{resp_col_label}?{options.output_label}"
+output_label = output_label.replace("/", "")
 result_fpath = os.path.join(output_dir, "tables", f"{output_label}_data.csv")
 pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_feat_import.pdf")
 sum_pdf_fpath = os.path.join(output_dir, "graphics", f"sum_{output_label}.pdf")
