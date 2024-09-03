@@ -82,6 +82,8 @@ prot_cal <- nutr_d1_diet_2015$`Protein (gm` * 4
 carb_cal <- nutr_d1_diet_2015$`Carbohydrate (gm` * 4
 fat_cal <- nutr_d1_diet_2015$`Total fat (gm` * 9
 
+nutr_d1_diet_2015$Atwater_gen_energy <- prot_cal + carb_cal + fat_cal
+
 sum(nutr_d1_diet_2015$`Energy (kcal`)/sum(c(prot_cal, carb_cal,fat_cal)) - 1
 
 prot_cal <- d1_diet_2015$`Protein (gm` * 4
