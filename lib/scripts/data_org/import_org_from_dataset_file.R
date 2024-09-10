@@ -17,12 +17,12 @@ option_list <- list(
   optparse::make_option(c("-o", "--out_subdir"), type="character", 
                         default=file.path("exam"), 
                         help="dataset subdir path with in Data dir"),
-  optparse::make_option(c("-f", "--filename"), type="character", 
+  optparse::make_option(c("-f", "--infile"), type="character", 
                         default=file.path("body_weight_2009-2020.csv"), 
-                        help="File name in /lib/datasets/."),
-  optparse::make_option(c("-n", "--outname"), type="character", 
+                        help="File name (full relative path) in /lib/datasets/."),
+  optparse::make_option(c("-n", "--outfile"), type="character", 
                         default=file.path("body_weight_2009-2020.csv"), 
-                        help="File name in outdir.")
+                        help="File (full relative path) in outdir.")
 );
 opt_parser <- optparse::OptionParser(option_list=option_list);
 opt <- parse_args(opt_parser);
@@ -39,7 +39,7 @@ dir.create(output_dir)
 
 id_name <- "Respondent sequence number"
 #### Loading in data ####
-import_tables <- read.csv(file = file.path("lib", "datasets", opt$filename),
+import_tables <- read.csv(file = file.path(opt$infile),
                           header = T, comment.char = "#",
                           check.names =F)
 
@@ -80,7 +80,7 @@ for (ut in 1:length(uniq_tables)){
   else full_table <- rbind(full_table, dl_tble)
 }
 
-write.csv(full_table[,target_names], file = file.path(output_dir, opt$outname),
+write.csv(full_table[,target_names], file = file.path(opt$outfile),
           row.names = FALSE)
 
 print("End R script.")
