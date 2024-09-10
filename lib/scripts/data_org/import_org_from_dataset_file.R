@@ -2,6 +2,7 @@
 # Script for averaging and organizing demographic data for the 2009-2020
 
 rm(list = ls()) #clear workspace
+chooseCRANmirror(graphics=FALSE, ind=66)
 
 #### Loading dependencies ####
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
@@ -14,11 +15,14 @@ source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 #### Parse commandline arguements ####
 option_list <- list(
   optparse::make_option(c("-o", "--out_subdir"), type="character", 
-                        default=file.path("unit_test"), 
+                        default=file.path("exam"), 
                         help="dataset subdir path with in Data dir"),
   optparse::make_option(c("-f", "--filename"), type="character", 
-                        default=file.path("cat_grams_d1d2"), 
-                        help="Root of filename to compare.")
+                        default=file.path("body_weight_2009-2020.csv"), 
+                        help="File name in /lib/datasets/."),
+  optparse::make_option(c("-n", "--outname"), type="character", 
+                        default=file.path("body_weight_2009-2020.csv"), 
+                        help="File name in outdir.")
 );
 opt_parser <- optparse::OptionParser(option_list=option_list);
 opt <- parse_args(opt_parser);
@@ -26,12 +30,11 @@ opt <- parse_args(opt_parser);
 print("Commandline arguments:")
 print(opt)
 
-
 # --------------------------------------------------------------------------
 print("Establishing directory layout and other constants.")
 # --------------------------------------------------------------------------
 #### Establish directory layout and other constants ####
-output_dir <- file.path("Data", "exam")
+output_dir <- file.path("Data", opt$out_subdir)
 dir.create(output_dir)
 
 id_name <- "Respondent sequence number"
@@ -77,7 +80,7 @@ for (ut in 1:length(uniq_tables)){
   else full_table <- rbind(full_table, dl_tble)
 }
 
-write.csv(full_table[,target_names], file = file.path(output_dir, "bodyweight_2009-2020.csv"),
+write.csv(full_table[,target_names], file = file.path(output_dir, opt$outname),
           row.names = FALSE)
 
 print("End R script.")
