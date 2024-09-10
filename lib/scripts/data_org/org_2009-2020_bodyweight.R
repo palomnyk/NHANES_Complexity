@@ -11,6 +11,22 @@ library("nhanesA")
 #### Load functions ####
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 
+#### Parse commandline arguements ####
+option_list <- list(
+  optparse::make_option(c("-o", "--out_subdir"), type="character", 
+                        default=file.path("unit_test"), 
+                        help="dataset subdir path with in Data dir"),
+  optparse::make_option(c("-f", "--filename"), type="character", 
+                        default=file.path("cat_grams_d1d2"), 
+                        help="Root of filename to compare.")
+);
+opt_parser <- optparse::OptionParser(option_list=option_list);
+opt <- parse_args(opt_parser);
+
+print("Commandline arguments:")
+print(opt)
+
+
 # --------------------------------------------------------------------------
 print("Establishing directory layout and other constants.")
 # --------------------------------------------------------------------------
@@ -20,7 +36,7 @@ dir.create(output_dir)
 
 id_name <- "Respondent sequence number"
 #### Loading in data ####
-import_tables <- read.csv(file = file.path("lib", "datasets", "body_weight_2009-2020.csv"),
+import_tables <- read.csv(file = file.path("lib", "datasets", opt$filename),
                           header = T, comment.char = "#",
                           check.names =F)
 
