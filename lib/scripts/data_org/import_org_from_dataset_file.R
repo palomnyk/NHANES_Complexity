@@ -8,6 +8,8 @@ chooseCRANmirror(graphics=FALSE, ind=66)
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 if (!requireNamespace("nhanesA", quietly = TRUE)) BiocManager::install("nhanesA")
 library("nhanesA")
+if (!requireNamespace("optparse", quietly = TRUE)) BiocManager::install("optparse")
+library("optparse")
 
 #### Load functions ####
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
