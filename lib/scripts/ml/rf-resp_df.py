@@ -41,6 +41,7 @@ import argparse
 import random
 import pathlib
 import pdb
+import plotnine
 
 # QT_DEBUG_PLUGINS=1
 # --------------------------------------------------------------------------
@@ -57,16 +58,14 @@ parser.add_argument("-o", "--output_label", default="py_rf",
                   help="base label for output files (additional info will be added to it)")
 parser.add_argument("-c", "--response_col", default=False,
                   help="Feature column to use in response var, if empty, all will be used")
-parser.add_argument("-f", "--out_folder", 
-					default="",
+parser.add_argument("-f", "--out_folder", default="",
                   help="path, sub folder in 'output'.", 
-					metavar="out_sub")
+				  metavar="out_sub")
 parser.add_argument("-r", "--response_fn", default="", dest="resp_fn",
-                  help="Name of file that holds response vars.", 
-									metavar="resp_fn")
+                  help="Name of file that holds response vars.", metavar="resp_fn")
 parser.add_argument("-l", "--delimiter", default="\t",
                   help="File delimiting symbol for metadata. Default is tab.",
-									metavar="delim", dest="delim")
+				  metavar="delim", dest="delim")
 parser.add_argument("-t", "--title", default=False,
                   help="Title for visualizations",
                   metavar="title", dest="title")
@@ -125,7 +124,7 @@ if options.response_col == False:
 	resp_col_label = ""
 else:
 	response_cols = [options.response_col]
-	resp_col_label = f"1col{options.response_col}"
+	resp_col_label = f"1col{options.response_col}?"
 response_df = response_df.sort_values(by = options.id_var)
 pred_df = pd.read_csv(os.path.join(".",options.pred_table), \
 		sep=",", header=0, index_col=options.id_var).fillna(0)
@@ -134,7 +133,7 @@ pred_df = pred_df.sort_values(by = options.id_var)
 id_list = response_df.loc[:,options.id_var]
 
 #output files
-output_label = f"{resp_col_label}?{options.output_label}"
+output_label = f"{resp_col_label}{options.output_label}"
 output_label = output_label.replace("/", "")
 result_fpath = os.path.join(output_dir, "tables", f"{output_label}_data.csv")
 pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_feat_import.pdf")
