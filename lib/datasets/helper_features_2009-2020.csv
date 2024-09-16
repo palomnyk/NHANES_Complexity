@@ -20,9 +20,7 @@ year_start,year_end,dt_group,nh_table,column_short_name,column_long_name,our_nam
 2017,2020,DEMO,P_DEMO,RIDAGEYR,Age at Screening Adjudicated - Recode,age_years
 2017,2020,DEMO,P_DEMO,RIDRETH1,Race/Ethnicity - Recode,ethnicity
 2009,2010,DEMO,DEMO_F,INDFMPIR,Ratio of family income to poverty,poverty_ratio
-2011,2012,DEMO,DEMO_G,INDFMPIR ,Ratio of family income to poverty,poverty_ratio
+2011,2012,DEMO,DEMO_G,INDFMPIR,Ratio of family income to poverty,poverty_ratio
 2013,2014,DEMO,DEMO_H,INDFMPIR,Ratio of family income to poverty,poverty_ratio
 2015,2016,DEMO,DEMO_I,INDFMPIR,Ratio of family income to poverty,poverty_ratio
 2017,2020,DEMO,P_DEMO,INDFMPIR,Ratio of family income to poverty,poverty_ratio
-,,,,,,
-,,,,,,
