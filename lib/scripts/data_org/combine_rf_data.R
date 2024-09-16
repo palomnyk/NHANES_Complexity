@@ -3,6 +3,7 @@
 # diet data.
 
 rm(list = ls()) #clear workspace
+chooseCRANmirror(graphics=FALSE, ind=66)
 
 ### Loading dependencies ####
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")

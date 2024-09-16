@@ -15,6 +15,7 @@
 # H. Category simple + food simple + nutrient (11)
 
 rm(list = ls()) #clear workspace
+chooseCRANmirror(graphics=FALSE, ind=66)
 
 pwd <- getwd()
 print(paste("Working in", pwd))
@@ -78,7 +79,6 @@ save_all_transforms(output_dir, "d1d2_nutr_only_2015", nutr_d1d2_diet_2015)
 
 num_only <- nutr_d1d2_diet_2015[,which(! names(nutr_d1d2_diet_2015) %in% c(id_var))]
 min_val <- min(num_only[num_only > 0])
-
 
 
 # d1d2_diet_2015 <- d1d2_diet_2015[, !sapply(d1d2_diet_2015, is.factor)]
