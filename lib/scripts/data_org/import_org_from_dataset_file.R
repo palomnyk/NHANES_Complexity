@@ -1,5 +1,5 @@
 # Author: Aaron Yerke (aaronyerke@gmail.com)
-# Script for averaging and organizing demographic data for the 2009-2020
+# Script for averaging and organizing data from a data import table
 
 rm(list = ls()) #clear workspace
 chooseCRANmirror(graphics=FALSE, ind=66)
@@ -20,10 +20,10 @@ option_list <- list(
                         default=file.path("exam"), 
                         help="dataset subdir path with in Data dir"),
   optparse::make_option(c("-f", "--infile"), type="character", 
-                        default=file.path("body_weight_2009-2020.csv"), 
-                        help="File name (full relative path) in /lib/datasets/."),
+                        default="lib/datasets/helper_features_2009-2020.csv", 
+                        help="full relative path, usually in /lib/datasets/, of data import file"),
   optparse::make_option(c("-n", "--outfile"), type="character", 
-                        default=file.path("body_weight_2009-2020.csv"), 
+                        default="Data/demo/helper_features_2009-2020.csv", 
                         help="File (full relative path) in outdir.")
 );
 opt_parser <- optparse::OptionParser(option_list=option_list);
@@ -47,9 +47,9 @@ import_tables <- read.csv(file = file.path(opt$infile),
 
 import_cols <- c(unique(import_tables$column_short_name),"SEQN")
 target_names <- c(unique(import_tables$our_name),id_name)
-my_cols <- c(target_names, "year", "nh_table_name", id_name)
 
-full_table <- data.frame()
+full_table <- data.frame(matrix(nrow = 0, ncol = length(import_cols)))
+names(full_table) <- target_names
 
 uniq_tables <- unique(import_tables$nh_table)
 #### Build tables ####
@@ -72,14 +72,15 @@ for (ut in 1:length(uniq_tables)){
     dl_tble <- read.csv(fname_path, header = TRUE, check.names = FALSE)
   }
   dl_tble <- dl_tble[,sapply(dl_tble, function(x) !all(is.na(x)))]
-  dl_tble <- dl_tble[,import_cols]
+  dl_tble <- dl_tble[,target_cols]
   names(dl_tble) <- target_names[match(names(dl_tble), import_cols)]
-  
-  dl_tble$nh_table <- rep(nh_tbl, nrow(dl_tble))
-  dl_tble$year <- rep(yr, nrow(dl_tble))
-  
-  if (ncol(full_table) == 0) full_table <- dl_tble
-  else full_table <- rbind(full_table, dl_tble)
+  row.names(dl_tble) <- dl_tble[,id_name]
+  # dl_tble <- dl_tble[,!names(dl_tble) %in% c(id_name)]
+  # dl_tble$nh_table <- rep(nh_tbl, nrow(dl_tble))
+  # dl_tble$year <- rep(yr, nrow(dl_tble))
+  for (cn in names(dl_tble)) {
+    full_table[row.names(dl_tble),cn] <- dl_tble[,cn]
+  }
 }
 
 write.csv(full_table[,target_names], file = file.path(opt$outfile),

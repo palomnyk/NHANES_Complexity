@@ -13,23 +13,18 @@
 #   a. alone (8) and with nutrients (9)
 # G. Category grams + food grams + nutrient (10)
 # H. Category simple + food simple + nutrient (11)
-#     
 
-  
 rm(list = ls()) #clear workspace
 
-pwd <- getwd()
-print(paste("Working in", pwd))
+chooseCRANmirror(graphics=FALSE, ind=66)
 
-#### Loading dependencies ####
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-if (!requireNamespace("nhanesA", quietly = TRUE)) BiocManager::install("nhanesA")
+if (!requireNamespace("nhanesA", quietly = TRUE)) install.packages("nhanesA")
 library("nhanesA")
 if (!requireNamespace("readxl", quietly = TRUE)) BiocManager::install("readxl")
 library("readxl")
 if (!requireNamespace("fastDummies", quietly = TRUE)) BiocManager::install("fastDummies")
 library("fastDummies")
-
 
 print("Loaded packages")
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
@@ -37,9 +32,6 @@ source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 #### Establish directory layout and other constants ####
 output_dir <- file.path("Data", "diet")
 dir.create(output_dir)
-# drop_criteria <- c("Dietary recall status" = c("Reported consuming breast-milk"),#DEMO_I
-#                    ""
-# )
 
 #### Loading in data ####
 food_codes <- readxl::read_excel(file.path("Data", "diet", "WWEIA1516_foodcat_FNDDS.xlsx"), 
@@ -136,40 +128,44 @@ write.csv(nutri_food_simple, file = file.path(output_dir, "d1_nutri_food_2015.cs
 #### Food categories ####
 d1_diet_2015$`USDA food code` <- food_codes$category_description[match(orig_fd_code, food_codes$food_code)]
 
-cat_g_only <- two_column_dummy(d1_diet_2015,
-                                     id_colnm = "Respondent sequence number",
-                                     item_colnm = "USDA food code",
-                                     count_colnm = "Gram weight of the food/individual component")
-print(paste("Number of adult diet participants:", nrow(cat_g_only)))
+print(head(d1_diet_2015$`USDA food code`))
 
-write.csv(cat_g_only, file = file.path(output_dir, "d1_cat_g_2015.csv"),
-          row.names = FALSE)
+# cat_g_only <- two_column_dummy(d1_diet_2015,
+#                                      id_colnm = "Respondent sequence number",
+#                                      item_colnm = "USDA food code",
+#                                      count_colnm = "Gram weight of the food/individual component")
+# print(paste("Number of adult diet participants:", nrow(cat_g_only)))
 
-nutri_food_g <- merge(cat_g_only, nutr_d1_diet_2015, by = id_var)
-write.csv(nutri_food_g, file = file.path(output_dir, "d1_nutri_cat_g_2015.csv"),
-          row.names = FALSE)
+# write.csv(cat_g_only, file = file.path(output_dir, "d1_cat_g_2015.csv"),
+#           row.names = FALSE)
 
-cat_simple <- subset(d1_diet_2015, select = c("USDA food code", id_var))
+# nutri_food_g <- merge(cat_g_only, nutr_d1_diet_2015, by = id_var)
+# write.csv(nutri_food_g, file = file.path(output_dir, "d1_nutri_cat_g_2015.csv"),
+#           row.names = FALSE)
 
-cat_simple <- fastDummies::dummy_cols(cat_simple,
-                                            select_columns = c("USDA food code"),
-                                            ignore_na = TRUE, remove_selected_columns = TRUE)
+# cat_simple <- subset(d1_diet_2015, select = c("USDA food code", id_var))
 
-cat_simple <- rowsum(cat_simple,
-                           group = cat_simple[,id_var],na.rm=T, )
-cat_simple[,id_var] <- row.names(cat_simple)
+# cat_simple <- fastDummies::dummy_cols(cat_simple,
+#                                             select_columns = c("USDA food code"),
+#                                             ignore_na = TRUE, remove_selected_columns = TRUE)
 
-write.csv(cat_simple, file = file.path(output_dir, "d1_cat_2015.csv"),
-          row.names = FALSE)
+# cat_simple <- rowsum(cat_simple,
+#                            group = cat_simple[,id_var],na.rm=T, )
+# cat_simple[,id_var] <- row.names(cat_simple)
 
-nutri_food_simple <- merge(cat_simple, nutr_d1_diet_2015, by = id_var)
-write.csv(nutri_food_simple, file = file.path(output_dir, "d1_nutri_cat_2015.csv"),
-          row.names = FALSE)
-# G. Category grams + food grams + nutrient (10)
-nutri_food_g_cat_g <- merge(nutri_food_g, USDA_food_g_only)
-write.csv(nutri_food_g_cat_g, file = file.path(output_dir, "d1_nutri_food_g_cat_g_2015.csv"),
-          row.names = FALSE)
-# H. Category simple + food simple + nutrient (11)
-nutri_food_cat <- merge(nutri_food_simple, USDA_food_simple)
-write.csv(nutri_food_cat, file = file.path(output_dir, "d1_nutri_food_cat_2015.csv"),
-          row.names = FALSE)
+# write.csv(cat_simple, file = file.path(output_dir, "d1_cat_2015.csv"),
+#           row.names = FALSE)
+
+# nutri_food_simple <- merge(cat_simple, nutr_d1_diet_2015, by = id_var)
+# write.csv(nutri_food_simple, file = file.path(output_dir, "d1_nutri_cat_2015.csv"),
+#           row.names = FALSE)
+# # G. Category grams + food grams + nutrient (10)
+# nutri_food_g_cat_g <- merge(nutri_food_g, USDA_food_g_only)
+# write.csv(nutri_food_g_cat_g, file = file.path(output_dir, "d1_nutri_food_g_cat_g_2015.csv"),
+#           row.names = FALSE)
+# # H. Category simple + food simple + nutrient (11)
+# nutri_food_cat <- merge(nutri_food_simple, USDA_food_simple)
+# write.csv(nutri_food_cat, file = file.path(output_dir, "d1_nutri_food_cat_2015.csv"),
+#           row.names = FALSE)
+
+print("Reached end of R script")
