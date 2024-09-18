@@ -197,17 +197,17 @@ rule create_diets_d1d2_2015:
 # 				--out_path {output[0]}
 # 			"""
 
-def aggregate_input(wildcards):
-    checkpoints.create_diets_d1_2015.get(**wildcards).output[0]
-    diet_org = glob_wildcards(f"Data/diet/d1_{{diet_org}}_2015.csv").diet_org
-    return expand("Data/diet/d1_{diet_org}_2015.csv", diet_org=diet_orgs_no_cat)
+# def aggregate_input(wildcards):
+#     checkpoints.create_diets_d1_2015.get(**wildcards).output[0]
+#     diet_org = glob_wildcards(f"Data/diet/d1_{{diet_org}}_2015.csv").diet_org
+#     return expand("Data/diet/d1_{diet_org}_2015.csv", diet_org=diet_orgs_no_cat)
 
 rule help_diets_d1_2015:
 	conda:"env/python_conda_env.yml"
 	input:
-		aggregate_input,
-		# "Data/diet/d1_{diet_org}_2015.csv",
-		"Data/demo/helper_features_2009-2020.csv"
+		# aggregate_input,
+		diet_org = "Data/diet/d1_{diet_org}_2015.csv",
+		helper = "Data/demo/helper_features_2009-2020.csv"
 	output: "Data/diet/helper_d1_{diet_org}_2015.csv"
 	resources:
 		runtime=60, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
@@ -215,9 +215,9 @@ rule help_diets_d1_2015:
 	shell:
 		"""
 		Rscript lib/scripts/data_org/combine_2_csv.R\
-			--first_path {input[0]}\
-			--secnd_path {input[1]}\
-			--out_path {output[0]}
+			--first_path {input.diet_org}\
+			--secnd_path {input.helper}\
+			--out_path {output}
 		"""
 
 checkpoint create_resp_var_table_2015:
@@ -247,13 +247,16 @@ rule rand_forest_d1_2015_VS_cardio_features:
 	shell: 
 		"""
 		echo {wildcards.diet_org}
-		# python lib/scripts/ml/rf-resp_df.py \
-		# 	--response_fn {{input.resp_var}} \
-		# 	--delimeter , \
-		# 	--pred_path {{input.diet_data}} \
-		# 	--out_folder proper_days \
-		# 	--output_label {wildcards.data_org}_d1_2015
+		python lib/scripts/ml/rf-resp_df.py \
+			--response_fn {input.resp_var} \
+			--delimeter , \
+			--pred_path {input.diet_data} \
+			--out_folder proper_days \
+			--output_label {wildcards.diet_org}_d1_2015
 		"""
+		# """
+		# echo {input.diet_data}
+		# """
 
 # for data_org in diet_orgs_no_cat:
 # 	print(data_org)
