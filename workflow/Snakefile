@@ -13,38 +13,28 @@ from snakemake.utils import min_version
 ##### set minimum snakemake version #####
 min_version("8.9.0")
 
-# diet_df = pd.read_csv(os.path.join(".","Data", "diet", "diet_test_rf.csv"), \
-# 		sep=",", header=0)
-
-# test_diets = [os.path.join("Data", "diet", x) for x in expand("{test_column}", diet=config["test_diets"])]
-# print(test_diets)
-# test_diets = expand("Data/diet/{diet}", diet=diet_df.loc[:,"Diet_orgs"])
-# print(test_diets)
+# Create constants
 epochs = ["2015", "2009-2020"]
-diet_orgs = ["nutr_only","food_g","nutri_food_g","food", "nutri_food","cat_g",\
-"nutri_cat_g","cat","nutri_cat","nutri_food_g_cat_g","nutri_food_cat"]
 days = ["d1", "d1d2"]
 transformations = ["", "_LOG", "_SCALE"]
-
+diet_orgs = ["nutr_only","food_g","nutri_food_g","food", "nutri_food","cat_g",\
+"nutri_cat_g","cat","nutri_cat","nutri_food_g_cat_g","nutri_food_cat"]
 diet_orgs_no_cat = ["nutr_only","food_g","nutri_food_g"]
-# diet_orgs_no_cat = ["d1d2_nutr_only","d1d2_food_g"]
 
 output_subdir="diet_test_d1d2"
 
 rule complete:
 	input:
 		"output/unit_test/tables/rf_test_data.csv",
-		# "Data/demo/helper_features_2009-2020.csv",
-		expand("Data/diet/d1_{diet_org}_2015.csv", diet_org=diet_orgs_no_cat),
-		# expand("Data/diet/helper_d1d2_{diet_org}_2015.csv", diet_org=diet_orgs_no_cat),
-		expand("Data/diet/helper_d1_{diet_org}_2015.csv", diet_org=diet_orgs_no_cat),
-		expand("output/proper_days/{diet_org}-d1-2015_data.csv", diet_org=diet_orgs),
-		expand("output/proper_days/{diet_org}-d1d2-2015_data.csv", diet_org=diet_orgs),
-		# os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
+		# expand("output/proper_days/tables/{diet_org}-d1-2015_data.csv", diet_org=diet_orgs),
+		# expand("output/proper_days/tables/{diet_org}-d1d2-2015_data.csv", diet_org=diet_orgs),
+		# expand("Data/diet/d1_{diet_org}_2015.csv", diet_org=diet_orgs),
+		# expand("Data/diet/helper_d1d2_{diet_org}_2015.csv", diet_org=diet_orgs),
+		os.path.join("output","proper_days", "graphics", "all_diet_orgs_days.pdf")
+		# expand("Data/diet/helper_d1_{diet_org}_2015.csv", diet_org=diet_orgs_no_cat),
 		# expand("Data/diet/multi_year/{diet_org_no_cat}_2009-2020.csv", zip, diet_org_no_cat=diet_orgs_no_cat),
 		# "Data/respns_vars/2009-2020cardio_respns_vars.csv",
-		# os.path.join("output","diet_test_d1d2", "graphics", "all_diet_orgs.pdf"),
-		# os.path.join("output","diet_test_d1d2", "graphics", "2009-2020_all_diet_orgs.pdf")
+
 
 checkpoint create_test_rf_dataset:
 	conda:"env/python_conda_env.yml",
@@ -112,7 +102,7 @@ rule build_2009_2020_bodyweight_resp:
 			--outfile {output[0]}
 		"""
 
-rule build_2009_2020_helper_features_resp:
+rule build_2009_2020_helper_features:
 	conda:"env/python_conda_env.yml"
 	input:"lib/datasets/helper_features_2009-2020.csv"
 	output:"Data/demo/helper_features_2009-2020.csv"
@@ -138,7 +128,7 @@ checkpoint create_diets_d1_2015:
 	input:
 		food_codes = os.path.join("Data", "diet", "WWEIA1516_foodcat_FNDDS.xlsx"),
 	output:
-		expand("Data/diet/d1_{diet_org}_2015.csv", diet_org=diet_orgs_no_cat)
+		expand("Data/diet/d1_{diet_org}_2015.csv", diet_org=diet_orgs)
 	resources:
 		runtime=240, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem_mb="16gb"
@@ -150,7 +140,7 @@ checkpoint create_diets_d1_2015:
 rule create_diets_d1d2_2015:
 	conda:"env/python_conda_env.yml",
 	output:
-		expand("Data/diet/d1d2_{diet_org}_2015.csv", diet_org=diet_orgs_no_cat),
+		expand("Data/diet/d1d2_{diet_org}_2015.csv", diet_org=diet_orgs),
 	resources:
 		runtime=240, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem="16gb"
@@ -214,7 +204,7 @@ rule rand_forest_d1_2015_VS_cardio_features:
 		resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
 		diet_data = "Data/diet/helper_d1_{diet_org}_2015.csv"
 	output:
-		"output/proper_days/{diet_org}-d1-2015_data.csv",
+		"output/proper_days/tables/{diet_org}-d1-2015_data.csv",
 	resources:
 		runtime=2880, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem="60gb"
@@ -235,7 +225,7 @@ rule rand_forest_d1d2_2015_VS_cardio_features:
 		resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
 		diet_data = "Data/diet/helper_d1d2_{diet_org}_2015.csv"
 	output:
-		"output/proper_days/{diet_org}-d1d2-2015_data.csv",
+		"output/proper_days/tables/{diet_org}-d1d2-2015_data.csv"
 	resources:
 		runtime=2880, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem="60gb"
@@ -251,19 +241,23 @@ rule rand_forest_d1d2_2015_VS_cardio_features:
 		"""
 
 rule diet_org_2015_comparison:
-    conda:
-        "env/python_conda_env.yml"
-    params:
-        output_subdir=output_subdir
-    input:
-        expand("output/proper_days/tables/{diet_org}_data.csv", diet_org=diet_orgs, )
-    output:
-        os.path.join("output","proper_days", "graphics", "all_diet_orgs.pdf")
-    shell:
-        """
-        python --version
-        Rscript lib/scripts/fig/diet_org_test_figure.R -o {params.output_subdir}
-        """
+	conda:
+		"env/python_conda_env.yml"
+	params:
+		output_subdir="proper_days",
+		r_script="lib/scripts/fig/diet_org_day_compare.R"
+	input:
+		expand("output/proper_days/tables/{diet_org}-{day}-2015_data.csv", diet_org=diet_orgs, day=days)
+	output:
+		os.path.join("output","proper_days", "graphics", "all_diet_orgs_days.pdf")
+	resources:
+		runtime=60, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
+		mem="20gb"
+	shell:
+		"""
+		python --version
+		Rscript {params.r_script} -o {params.output_subdir}
+		"""
 
 # checkpoint create_resp_2009_2020_dataset:
 # 	conda:"env/python_conda_env.yml",
