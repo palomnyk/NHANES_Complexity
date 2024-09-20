@@ -27,7 +27,8 @@ snakemake --profile workflow/config
 
 `snakemake --dry-run`
 ##### Drawing diagram of workflow
-`snakemake --dag |dot -Tpdf > workflow/reports/dag_test.pdf`
+`snakemake --dag |dot -Tpdf > workflow/reports/dag_2015.pdf`
+snakemake --forceall --dag |dot -Tpdf > workflow/reports/dag_2015.pdf
 
 `snakemake --software-deployment-method conda --cores 1 rf_cardio_cat_g`
 
@@ -166,3 +167,9 @@ python lib/scripts/ml/rf-resp_df.py \
         --output_label "LDL-cholesterol (mg/dL" \
         --title "LDL-cholesterol (mg/dL" \
         --response_col "LDL-cholesterol (mg/dL"
+
+
+conda config --add pkgs_dirs ../conda_from_home/pkgs
+conda config --add envs_dirs ../conda_from_home/envs
+
+/project/nhanes_ml/conda_from_home/envs/python_ml_conda/bin/python3.11
