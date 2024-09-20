@@ -14,7 +14,7 @@ library("optparse")
 #### Load functions ####
 source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 
-#### Parse commandline arguements ####
+#### Parse commandline arguments ####
 option_list <- list(
   optparse::make_option(c("-o", "--out_subdir"), type="character", 
                         default=file.path("exam"), 
@@ -83,7 +83,12 @@ for (ut in 1:length(uniq_tables)){
   }
 }
 
-write.csv(full_table[,target_names], file = file.path(opt$outfile),
+# write.csv(full_table[,target_names], file = file.path(paste("raw_", opt$outfile)),
+#           row.names = FALSE)
+
+full_table <- data.frame(convert_dummy(full_table), check.names = FALSE)
+
+write.csv(full_table, file = file.path(opt$outfile),
           row.names = FALSE)
 
 print("End R script.")
