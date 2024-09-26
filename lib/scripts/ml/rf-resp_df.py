@@ -113,7 +113,6 @@ print("Establishing other constants.")
 output_label = options.output_label
 col_names = ["model", "response_var"]
 num_cv_folds = 10
-num_cv_folds = 2
 n_trees = 1000
 bar_shown = 25
 col_names = col_names + [f"split{x}" for x in range(num_cv_folds)]
@@ -158,10 +157,9 @@ with open(result_fpath, "w+") as fl:
 	fl.write("\n")
 	print(f"There are {len(response_cols)} response columns")
 	ave_feature_importance = []
-	for meta_c in response_cols:
-		m_c = meta_c
-		print(m_c)
-		resp_safe_ids = response_df.loc[response_df[m_c].notna(), options.id_var]
+	ave_feature_response = []
+	for resp_var in response_cols:
+		resp_safe_ids = response_df.loc[response_df[resp_var ].notna(), options.id_var]
 		intersect_safe_ids = list(set(resp_safe_ids) & set(pred_df.index))
 		print(f"num safe ids {len(resp_safe_ids)}")
 		# print(resp_safe_ids)
@@ -177,11 +175,11 @@ with open(result_fpath, "w+") as fl:
 			pred_train = pred_df.loc[pred_df.index.isin(train),:]#selects whole dataframe
 			pred_test = pred_df.loc[pred_df.index.isin(test),:]
 			# print(pred_train.shape)
-			resp_train = response_df.loc[ response_df[options.id_var].isin(train).tolist() , m_c].convert_dtypes()
-			resp_test = response_df.loc[ response_df[options.id_var].isin(test).tolist() , m_c].convert_dtypes()
+			resp_train = response_df.loc[ response_df[options.id_var].isin(train).tolist() , resp_var ].convert_dtypes()
+			resp_test = response_df.loc[ response_df[options.id_var].isin(test).tolist() , resp_var ].convert_dtypes()
 			print(f"len resp_train {len(resp_train)}, {resp_train.dtype}")
 			if is_numeric_dtype(resp_train) and resp_train.dtype.name != "boolean":
-				print(f"going to RandomForestRegressor(), {m_c}")
+				print(f"going to RandomForestRegressor(), {resp_var }")
 				clf = RandomForestRegressor(n_estimators=n_trees)
 				clf.fit(pred_train, resp_train)
 				print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
@@ -205,7 +203,7 @@ with open(result_fpath, "w+") as fl:
 				my_accuracy.append(my_score)
 			final_acc = ",".join(map(str, my_accuracy))
 			# print(final_acc)
-			msg = f"RF,{m_c},{final_acc}\n"
+			msg = f"RF,{resp_var },{final_acc}\n"
 			print(msg, flush=True)
 			fl.write(msg)
 			feature_df = pd.DataFrame(feature_rows)
@@ -213,29 +211,32 @@ with open(result_fpath, "w+") as fl:
 			feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
 			feature_df.to_csv(os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv"))
 			feature_mean = feature_df.mean(axis=0)
+			print("feature mean")
+			print(feature_mean)
 			feature_std = feature_df.std(axis=0)
 			ave_feature_importance.append(feature_mean)
+			ave_feature_response.append(resp_var )
 
 			try:
 				# print(c_statistic_harrell(modl_predict.tolist(), resp_test.tolist()))
 				shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
 				print(shap_values)
 				shap.summary_plot(shap_values, pred_df)
-				# plt.title(f"{meta_c}")
-				plt.suptitle(f"SHAP Summary, {meta_c}")
+				# plt.title(f"{resp_var}")
+				plt.suptitle(f"SHAP Summary, {resp_var}")
 				pdf.savefig()
 				plt.close()
 			except Exception as e:
-				print(f"Exception: shap summary {meta_c}")
+				print(f"Exception: shap summary {resp_var}")
 				print(e)
 			try:
 				shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
 				shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train)
-				plt.suptitle(f"SHAP decision, {meta_c}")
+				plt.suptitle(f"SHAP decision, {resp_var}")
 				pdf.savefig()
 				plt.close()
 			except Exception as e:
-				print(f"Exception: shap decision {meta_c}")
+				print(f"Exception: shap decision {resp_var}")
 				print(e)
 			
 			if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
@@ -243,14 +244,14 @@ with open(result_fpath, "w+") as fl:
 				plt.xlabel(f"Top {bar_shown} Relative Importances")
 				plt.xticks(rotation="vertical")
 				plt.title(f"Mean accuracy: {round(np.mean(my_accuracy), 3)}")
-				plt.suptitle(f"Feature importance: {meta_c}")
+				plt.suptitle(f"Feature importance: {resp_var}")
 				pdf.savefig(bbox_inches='tight')
 				plt.close()
 				print("making confusion matrix")
 				cnf_matrix = confusion_matrix(responses, predictions)
 				# print(str(cnf_matrix))
 				disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix).plot()
-				plt.title(f"{options.title}, {meta_c}")
+				plt.title(f"{options.title}, {resp_var}")
 				# pdf.savefig(bbox_inches='tight')
 				pdf.savefig()
 				plt.close()
@@ -261,7 +262,7 @@ with open(result_fpath, "w+") as fl:
 				plt.xlabel(f"Top {bar_shown} Relative Importances")
 				plt.xticks(rotation="vertical")
 				plt.title(f"Mean R-squared: {round(np.mean(my_accuracy), 3)}")
-				plt.suptitle(f"Feature importance: {meta_c}")
+				plt.suptitle(f"Feature importance: {resp_var}")
 				# pdf.savefig(bbox_inches='tight')
 				pdf.savefig()
 				plt.clf()
