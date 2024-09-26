@@ -113,6 +113,7 @@ print("Establishing other constants.")
 output_label = options.output_label
 col_names = ["model", "response_var"]
 num_cv_folds = 10
+num_cv_folds = 2
 n_trees = 1000
 bar_shown = 25
 col_names = col_names + [f"split{x}" for x in range(num_cv_folds)]
@@ -212,29 +213,30 @@ with open(result_fpath, "w+") as fl:
 			feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
 			feature_df.to_csv(os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv"))
 			feature_mean = feature_df.mean(axis=0)
+			feature_std = feature_df.std(axis=0)
 			ave_feature_importance.append(feature_mean)
 
-			# try:
-			# 	# print(c_statistic_harrell(modl_predict.tolist(), resp_test.tolist()))
-			# 	shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
-			# 	print(shap_values)
-			# 	shap.summary_plot(shap_values, pred_df)
-			# 	# plt.title(f"{meta_c}")
-			# 	plt.suptitle(f"SHAP Summary, {meta_c}")
-			# 	pdf.savefig()
-			# 	plt.close()
-			# except Exception as e:
-			# 	print(f"Exception: shap summary {meta_c}")
-			# 	print(e)
-			# try:
-			# 	shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
-			# 	shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train)
-			# 	plt.suptitle(f"SHAP decision, {meta_c}")
-			# 	pdf.savefig()
-			# 	plt.close()
-			# except Exception as e:
-			# 	print(f"Exception: shap decision {meta_c}")
-			# 	print(e)
+			try:
+				# print(c_statistic_harrell(modl_predict.tolist(), resp_test.tolist()))
+				shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
+				print(shap_values)
+				shap.summary_plot(shap_values, pred_df)
+				# plt.title(f"{meta_c}")
+				plt.suptitle(f"SHAP Summary, {meta_c}")
+				pdf.savefig()
+				plt.close()
+			except Exception as e:
+				print(f"Exception: shap summary {meta_c}")
+				print(e)
+			try:
+				shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
+				shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train)
+				plt.suptitle(f"SHAP decision, {meta_c}")
+				pdf.savefig()
+				plt.close()
+			except Exception as e:
+				print(f"Exception: shap decision {meta_c}")
+				print(e)
 			
 			if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
 				plt.barh(y=feature_mean.index[0:bar_shown], width=feature_mean[0:bar_shown])
@@ -263,10 +265,11 @@ with open(result_fpath, "w+") as fl:
 				# pdf.savefig(bbox_inches='tight')
 				pdf.savefig()
 				plt.clf()
-	ave_feature_importance = pd.DataFrame(ave_feature_importance, index=response_cols)
+	print(f"Saving average feature importance")
+	ave_feature_importance = pd.DataFrame(ave_feature_importance)
 	ave_feature_importance = ave_feature_importance.reindex(ave_feature_importance.mean().sort_values(ascending=False).index, axis=1)
-	ave_feature_importance = ave_feature_importance.transpose()
-	ave_feature_importance.to_csv(os.path.join(output_dir, "tables", f"ave_feat_imp_{output_label}.csv"))
+	# ave_feature_importance = ave_feature_importance.transpose()
+	ave_feature_importance.to_csv(os.path.join(output_dir, "tables", f"ave_feat_imp_{output_label}.csv"), index=False)
 print("Saving pdf", flush = True)
 pdf.close()
 
