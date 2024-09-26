@@ -4,6 +4,9 @@
 # Should take a table with predictor/explanatory/independant and a table
 # with response/outcome/dependant variable.
 # Returns accuracy and other metrics and feature importance.
+# Interesting resources for SHAP values:
+# 	1: https://shap.readthedocs.io/en/latest/example_notebooks/tabular_examples/tree_based_models/NHANES%20I%20Survival%20Model.html
+# 		-Uses NHANES data for example
 # --------------------------------------------------------------------------
 print("Loading external libraries.",flush = True)
 # --------------------------------------------------------------------------
@@ -37,11 +40,13 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
+from scipy import stats
 import argparse
 import random
 import pathlib
 import pdb
-import plotnine
+import shap
+# import plotnine
 
 # QT_DEBUG_PLUGINS=1
 # --------------------------------------------------------------------------
@@ -50,7 +55,7 @@ print("Reading commmandline input with optparse.", flush = True)
 
 parser = argparse.ArgumentParser(description="This script runs a random forest test on various datasets.")
 parser.add_argument("-e", "--pred_path", dest="pred_table", 
-				  default = "output/tables/diet_2015.csv",
+				  default = "Data/unit_test/mtc_predictor.csv",
                   help="path, relative to cwd, to table with predictor/explanatory/independant vars",
 				  metavar="pred_table")
 parser.add_argument("-o", "--output_label", default="py_rf",
@@ -58,10 +63,11 @@ parser.add_argument("-o", "--output_label", default="py_rf",
                   help="base label for output files (additional info will be added to it)")
 parser.add_argument("-c", "--response_col", default=False,
                   help="Feature column to use in response var, if empty, all will be used")
-parser.add_argument("-f", "--out_folder", default="",
+parser.add_argument("-f", "--out_folder", default="unit_test",
                   help="path, sub folder in 'output'.", 
 				  metavar="out_sub")
-parser.add_argument("-r", "--response_fn", default="", dest="resp_fn",
+parser.add_argument("-r", "--response_fn", default="Data/unit_test/mtc_response.csv",
+				  dest="resp_fn",
                   help="Name of file that holds response vars.", metavar="resp_fn")
 parser.add_argument("-l", "--delimiter", default="\t",
                   help="File delimiting symbol for metadata. Default is tab.",
@@ -91,7 +97,6 @@ python lib/scripts/ml/rf_resp_df.py \
 print("Defining functions", flush = True)
 # --------------------------------------------------------------------------
 
-
 # --------------------------------------------------------------------------
 print("Establishing directory layout.", flush = True)
 # --------------------------------------------------------------------------
@@ -116,7 +121,7 @@ if options.title == False:
 
 response_df = pd.read_csv(os.path.join(".",options.resp_fn), \
 		sep=",", header=0).replace("TRUE", True).replace("FALSE", False)
-print(response_df.columns)
+# print(response_df.columns)
 
 #set labels for output files and select column to use in response var
 if options.response_col == False:
@@ -126,9 +131,10 @@ else:
 	response_cols = [options.response_col]
 	resp_col_label = f"1col{options.response_col}?"
 response_df = response_df.sort_values(by = options.id_var)
+# print(options.id_var)
 pred_df = pd.read_csv(os.path.join(".",options.pred_table), \
 		sep=",", header=0, index_col=options.id_var).fillna(0)
-print(pred_df)
+# print(pred_df)
 pred_df = pred_df.sort_values(by = options.id_var)
 id_list = response_df.loc[:,options.id_var]
 
@@ -143,25 +149,13 @@ algo_table_fpath = os.path.join(output_dir, "tables", f"algo_{output_label}.csv"
 seed = 7
 
 # --------------------------------------------------------------------------
-print(f"Selecting models.")
-# --------------------------------------------------------------------------
-models = []
-# models.append(('LogR', LogisticRegression(max_iter=1000)))
-# models.append(('LDA', LinearDiscriminantAnalysis()))
-# models.append(('KNN', KNeighborsClassifier()))
-# models.append(('DTREE', DecisionTreeClassifier()))
-models.append(('RF', RandomForestRegressor()))
-# models.append(('GausNB', GaussianNB()))
-# models.append(('SVM', SVC()))
-
-# --------------------------------------------------------------------------
 print(f"Building accuracy scores. Results found at {result_fpath}.")
 # --------------------------------------------------------------------------
 pdf = matplotlib.backends.backend_pdf.PdfPages(pdf_fpath)
 with open(result_fpath, "w+") as fl:
 	fl.write(",".join(col_names))
 	fl.write("\n")
-	print(f"There are {len(response_cols)} response columns, {len(models)} models")
+	print(f"There are {len(response_cols)} response columns")
 	ave_feature_importance = []
 	for meta_c in response_cols:
 		m_c = meta_c
@@ -169,52 +163,48 @@ with open(result_fpath, "w+") as fl:
 		resp_safe_ids = response_df.loc[response_df[m_c].notna(), options.id_var]
 		intersect_safe_ids = list(set(resp_safe_ids) & set(pred_df.index))
 		print(f"num safe ids {len(resp_safe_ids)}")
-		print(resp_safe_ids)
-		for name, model in models:
-			print(f"{name}")
-			# try:
-			my_accuracy = []
-			responses = []
-			predictions = []
-			kfold = model_selection.KFold(n_splits=num_cv_folds, random_state=seed, shuffle=True)
-			feature_rows = []
-			for train, test in kfold.split(intersect_safe_ids):
-				print(f"train: {len(train)}, test: {len(test)}")
-				train = [intersect_safe_ids[x] for x in train]
-				test = [intersect_safe_ids[x] for x in test]
-				pred_train = pred_df.loc[pred_df.index.isin(train),:]#selects whole dataframe
-				pred_test = pred_df.loc[pred_df.index.isin(test),:]
-				print(pred_train.shape)
-				resp_train = response_df.loc[ response_df[options.id_var].isin(train).tolist() , m_c].convert_dtypes()
-				resp_test = response_df.loc[ response_df[options.id_var].isin(test).tolist() , m_c].convert_dtypes()
-				print(f"len resp_train {len(resp_train)}, {resp_train.dtype}")
-				if is_numeric_dtype(resp_train) and resp_train.dtype.name != "boolean":
-					print(f"going to RandomForestRegressor(), {m_c}")
-					clf = RandomForestRegressor(n_estimators=n_trees)
-					clf.fit(pred_train, resp_train)
-					print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
-					feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
-					modl_predict = clf.predict(pred_test)
-					# my_score = r2_score(resp_test, modl_predict, sample_weight=None)
-					my_score = clf.score(pred_test, resp_test, sample_weight=None)
-					my_accuracy.append(my_score)
-					# print(my_accuracy)
-				else:
-					print("going to RandomForestClassifier()")
-					clf = RandomForestClassifier(n_estimators=n_trees)
-					print(set(resp_train))
-					clf.fit(pred_train, resp_train)
-					print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
-					feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
-					modl_predict = clf.predict(pred_test)
-					predictions.extend(modl_predict)
-					responses.extend(resp_test)
-					my_score = clf.score(pred_test, resp_test, sample_weight=None)
-					my_accuracy.append(my_score)
-
+		# print(resp_safe_ids)
+		my_accuracy = []
+		responses = []
+		predictions = []
+		kfold = model_selection.KFold(n_splits=num_cv_folds, random_state=seed, shuffle=True)
+		feature_rows = []
+		for train, test in kfold.split(intersect_safe_ids):
+			print(f"train: {len(train)}, test: {len(test)}")
+			train = [intersect_safe_ids[x] for x in train]
+			test = [intersect_safe_ids[x] for x in test]
+			pred_train = pred_df.loc[pred_df.index.isin(train),:]#selects whole dataframe
+			pred_test = pred_df.loc[pred_df.index.isin(test),:]
+			# print(pred_train.shape)
+			resp_train = response_df.loc[ response_df[options.id_var].isin(train).tolist() , m_c].convert_dtypes()
+			resp_test = response_df.loc[ response_df[options.id_var].isin(test).tolist() , m_c].convert_dtypes()
+			print(f"len resp_train {len(resp_train)}, {resp_train.dtype}")
+			if is_numeric_dtype(resp_train) and resp_train.dtype.name != "boolean":
+				print(f"going to RandomForestRegressor(), {m_c}")
+				clf = RandomForestRegressor(n_estimators=n_trees)
+				clf.fit(pred_train, resp_train)
+				print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
+				feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
+				modl_predict = clf.predict(pred_test)
+				# my_score = r2_score(resp_test, modl_predict, sample_weight=None)
+				my_score = clf.score(pred_test, resp_test, sample_weight=None)
+				my_accuracy.append(my_score)
+				# print(my_accuracy)
+			else:
+				print("going to RandomForestClassifier()")
+				clf = RandomForestClassifier(n_estimators=n_trees)
+				# print(set(resp_train))
+				clf.fit(pred_train, resp_train)
+				print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
+				feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
+				modl_predict = clf.predict(pred_test)
+				predictions.extend(modl_predict)
+				responses.extend(resp_test)
+				my_score = clf.score(pred_test, resp_test, sample_weight=None)
+				my_accuracy.append(my_score)
 			final_acc = ",".join(map(str, my_accuracy))
-			print(final_acc)
-			msg = f"{name},{m_c},{final_acc}\n"
+			# print(final_acc)
+			msg = f"RF,{m_c},{final_acc}\n"
 			print(msg, flush=True)
 			fl.write(msg)
 			feature_df = pd.DataFrame(feature_rows)
@@ -223,27 +213,44 @@ with open(result_fpath, "w+") as fl:
 			feature_df.to_csv(os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv"))
 			feature_mean = feature_df.mean(axis=0)
 			ave_feature_importance.append(feature_mean)
+
+			# try:
+			# 	# print(c_statistic_harrell(modl_predict.tolist(), resp_test.tolist()))
+			# 	shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
+			# 	print(shap_values)
+			# 	shap.summary_plot(shap_values, pred_df)
+			# 	# plt.title(f"{meta_c}")
+			# 	plt.suptitle(f"SHAP Summary, {meta_c}")
+			# 	pdf.savefig()
+			# 	plt.close()
+			# except Exception as e:
+			# 	print(f"Exception: shap summary {meta_c}")
+			# 	print(e)
+			# try:
+			# 	shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
+			# 	shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train)
+			# 	plt.suptitle(f"SHAP decision, {meta_c}")
+			# 	pdf.savefig()
+			# 	plt.close()
+			# except Exception as e:
+			# 	print(f"Exception: shap decision {meta_c}")
+			# 	print(e)
+			
 			if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
-				plt.barh(feature_mean.index[0:bar_shown], feature_mean[0:bar_shown])
+				plt.barh(y=feature_mean.index[0:bar_shown], width=feature_mean[0:bar_shown])
 				plt.xlabel(f"Top {bar_shown} Relative Importances")
 				plt.xticks(rotation="vertical")
 				plt.title(f"Mean accuracy: {round(np.mean(my_accuracy), 3)}")
-				plt.suptitle(f"{options.title}, {meta_c}")
+				plt.suptitle(f"Feature importance: {meta_c}")
 				pdf.savefig(bbox_inches='tight')
 				plt.close()
 				print("making confusion matrix")
-				# my_score = clf.score(predictions, responses, sample_weight=None)
-				# predictions = [str(b) for b in predictions]
-				# responses = [str(b) for b in responses]
-				# my_labels = list(set(responses + predictions))
-				# print(my_labels)
-				# print(predictions)
-				# print(responses)
 				cnf_matrix = confusion_matrix(responses, predictions)
-				print(str(cnf_matrix))
+				# print(str(cnf_matrix))
 				disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix).plot()
 				plt.title(f"{options.title}, {meta_c}")
-				pdf.savefig(bbox_inches='tight')
+				# pdf.savefig(bbox_inches='tight')
+				pdf.savefig()
 				plt.close()
 
 			else:
@@ -252,11 +259,15 @@ with open(result_fpath, "w+") as fl:
 				plt.xlabel(f"Top {bar_shown} Relative Importances")
 				plt.xticks(rotation="vertical")
 				plt.title(f"Mean R-squared: {round(np.mean(my_accuracy), 3)}")
-				plt.suptitle(f"{options.title}, {meta_c}")
-				pdf.savefig(bbox_inches='tight')
+				plt.suptitle(f"Feature importance: {meta_c}")
+				# pdf.savefig(bbox_inches='tight')
+				pdf.savefig()
 				plt.clf()
 	ave_feature_importance = pd.DataFrame(ave_feature_importance, index=response_cols)
+	ave_feature_importance = ave_feature_importance.reindex(ave_feature_importance.mean().sort_values(ascending=False).index, axis=1)
 	ave_feature_importance = ave_feature_importance.transpose()
 	ave_feature_importance.to_csv(os.path.join(output_dir, "tables", f"ave_feat_imp_{output_label}.csv"))
 print("Saving pdf", flush = True)
 pdf.close()
+
+print(f"Completed {__file__}", flush = True)
