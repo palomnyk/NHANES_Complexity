@@ -131,7 +131,7 @@ else:
 	response_cols = [options.response_col]
 	resp_col_label = f"1col{options.response_col}?"
 response_df = response_df.sort_values(by = options.id_var)
-# print(options.id_var)
+# print(options.id_vuar)
 pred_df = pd.read_csv(os.path.join(".",options.pred_table), \
 		sep=",", header=0, index_col=options.id_var).fillna(0)
 # print(pred_df)
@@ -156,8 +156,9 @@ with open(result_fpath, "w+") as fl:
 	fl.write(",".join(col_names))
 	fl.write("\n")
 	print(f"There are {len(response_cols)} response columns")
+	feature_importance = {}
+	feature_resp_var = []
 	ave_feature_importance = []
-	ave_feature_response = []
 	for resp_var in response_cols:
 		resp_safe_ids = response_df.loc[response_df[resp_var ].notna(), options.id_var]
 		intersect_safe_ids = list(set(resp_safe_ids) & set(pred_df.index))
@@ -167,7 +168,6 @@ with open(result_fpath, "w+") as fl:
 		responses = []
 		predictions = []
 		kfold = model_selection.KFold(n_splits=num_cv_folds, random_state=seed, shuffle=True)
-		feature_rows = []
 		for train, test in kfold.split(intersect_safe_ids):
 			print(f"train: {len(train)}, test: {len(test)}")
 			train = [intersect_safe_ids[x] for x in train]
@@ -181,26 +181,22 @@ with open(result_fpath, "w+") as fl:
 			if is_numeric_dtype(resp_train) and resp_train.dtype.name != "boolean":
 				print(f"going to RandomForestRegressor(), {resp_var }")
 				clf = RandomForestRegressor(n_estimators=n_trees)
-				clf.fit(pred_train, resp_train)
-				print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
-				feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
-				modl_predict = clf.predict(pred_test)
-				# my_score = r2_score(resp_test, modl_predict, sample_weight=None)
-				my_score = clf.score(pred_test, resp_test, sample_weight=None)
-				my_accuracy.append(my_score)
-				# print(my_accuracy)
 			else:
 				print("going to RandomForestClassifier()")
 				clf = RandomForestClassifier(n_estimators=n_trees)
-				# print(set(resp_train))
-				clf.fit(pred_train, resp_train)
-				print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
-				feature_rows.append(dict(zip(clf.feature_names_in_, clf.feature_importances_)))
-				modl_predict = clf.predict(pred_test)
-				predictions.extend(modl_predict)
-				responses.extend(resp_test)
-				my_score = clf.score(pred_test, resp_test, sample_weight=None)
-				my_accuracy.append(my_score)
+			clf.fit(pred_train, resp_train)
+			print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
+			#add feature importance to global feature_importance
+			k_feat_import = dict(zip(clf.feature_names_in_, clf.feature_importances_))
+			feature_importance = {key: value + two[key] + [three[key]] for key, value in feature_importance.iteritems()}
+			
+			modl_predict = clf.predict(pred_test)
+			predictions.extend(modl_predict)
+			responses.extend(resp_test)
+			my_score = clf.score(pred_test, resp_test, sample_weight=None)
+
+			# my_score = r2_score(resp_test, modl_predict, sample_weight=None)
+			my_accuracy.append(my_score)
 			final_acc = ",".join(map(str, my_accuracy))
 			# print(final_acc)
 			msg = f"RF,{resp_var },{final_acc}\n"
@@ -208,14 +204,13 @@ with open(result_fpath, "w+") as fl:
 			fl.write(msg)
 			feature_df = pd.DataFrame(feature_rows)
 			# Order the features by importance
-			feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
+			# feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
 			feature_df.to_csv(os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv"))
 			feature_mean = feature_df.mean(axis=0)
 			print("feature mean")
 			print(feature_mean)
 			feature_std = feature_df.std(axis=0)
 			ave_feature_importance.append(feature_mean)
-			ave_feature_response.append(resp_var )
 
 			try:
 				# print(c_statistic_harrell(modl_predict.tolist(), resp_test.tolist()))
