@@ -156,8 +156,9 @@ with open(result_fpath, "w+") as fl:
 	fl.write(",".join(col_names))
 	fl.write("\n")
 	print(f"There are {len(response_cols)} response columns")
-	feature_importance = {}
-	feature_resp_var = []
+	feature_importance = {}#dict to hold all feat import; keys = features, values = [importance scores] 
+	feature_resp_var = []#response vars in same order of lists holding the importance scores of feature_importances
+	model_type = []#model in same order of lists holding the importance scores of feature_importances
 	ave_feature_importance = []
 	for resp_var in response_cols:
 		resp_safe_ids = response_df.loc[response_df[resp_var ].notna(), options.id_var]
@@ -181,86 +182,101 @@ with open(result_fpath, "w+") as fl:
 			if is_numeric_dtype(resp_train) and resp_train.dtype.name != "boolean":
 				print(f"going to RandomForestRegressor(), {resp_var }")
 				clf = RandomForestRegressor(n_estimators=n_trees)
+				model_name = "RF_Regressor"
 			else:
 				print("going to RandomForestClassifier()")
 				clf = RandomForestClassifier(n_estimators=n_trees)
+				model_name = "RF_Classifier"
+			
+			model_type.extend(model_name)
 			clf.fit(pred_train, resp_train)
 			print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
 			#add feature importance to global feature_importance
 			k_feat_import = dict(zip(clf.feature_names_in_, clf.feature_importances_))
-			feature_importance = {key: value + two[key] + [three[key]] for key, value in feature_importance.iteritems()}
-			
+			for key in k_feat_import:
+				# Append the value associated with the 'key' to the list for that 'key' in 'result'.
+				if key in feature_importance:
+					feature_importance[key].append(k_feat_import[key])
+					# print(f"if {key}")
+				else:
+					# print(f"else {key}")
+					feature_importance[key] = [k_feat_import[key]]
+
+			feature_resp_var.append(resp_var)
+
 			modl_predict = clf.predict(pred_test)
 			predictions.extend(modl_predict)
 			responses.extend(resp_test)
 			my_score = clf.score(pred_test, resp_test, sample_weight=None)
-
 			# my_score = r2_score(resp_test, modl_predict, sample_weight=None)
 			my_accuracy.append(my_score)
+
 			final_acc = ",".join(map(str, my_accuracy))
 			# print(final_acc)
-			msg = f"RF,{resp_var },{final_acc}\n"
+			msg = f"{model_name},{resp_var },{final_acc}\n"
 			print(msg, flush=True)
 			fl.write(msg)
-			feature_df = pd.DataFrame(feature_rows)
-			# Order the features by importance
-			# feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
-			feature_df.to_csv(os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv"))
-			feature_mean = feature_df.mean(axis=0)
-			print("feature mean")
-			print(feature_mean)
-			feature_std = feature_df.std(axis=0)
-			ave_feature_importance.append(feature_mean)
 
-			try:
-				# print(c_statistic_harrell(modl_predict.tolist(), resp_test.tolist()))
-				shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
-				print(shap_values)
-				shap.summary_plot(shap_values, pred_df)
-				# plt.title(f"{resp_var}")
-				plt.suptitle(f"SHAP Summary, {resp_var}")
-				pdf.savefig()
-				plt.close()
-			except Exception as e:
-				print(f"Exception: shap summary {resp_var}")
-				print(e)
-			try:
-				shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
-				shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train)
-				plt.suptitle(f"SHAP decision, {resp_var}")
-				pdf.savefig()
-				plt.close()
-			except Exception as e:
-				print(f"Exception: shap decision {resp_var}")
-				print(e)
-			
-			if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
-				plt.barh(y=feature_mean.index[0:bar_shown], width=feature_mean[0:bar_shown])
-				plt.xlabel(f"Top {bar_shown} Relative Importances")
-				plt.xticks(rotation="vertical")
-				plt.title(f"Mean accuracy: {round(np.mean(my_accuracy), 3)}")
-				plt.suptitle(f"Feature importance: {resp_var}")
-				pdf.savefig(bbox_inches='tight')
-				plt.close()
-				print("making confusion matrix")
-				cnf_matrix = confusion_matrix(responses, predictions)
-				# print(str(cnf_matrix))
-				disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix).plot()
-				plt.title(f"{options.title}, {resp_var}")
-				# pdf.savefig(bbox_inches='tight')
-				pdf.savefig()
-				plt.close()
+		print("debug feature_importance")
+		# print(feature_importance)
+		feature_df = pd.DataFrame(feature_importance)
+		my_rows = [n for n,x in enumerate(feature_resp_var) if x==resp_var]
+		
+		# Order the features by importance
+		feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
+		# feature_df.to_csv(os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv"))
+		feature_mean = feature_df.mean(axis=0)
+		feature_std = feature_df.std(axis=0)
+		ave_feature_importance.append(feature_mean)
 
-			else:
-				print("else")
-				plt.barh(feature_mean.index[0:bar_shown], feature_mean[0:bar_shown])
-				plt.xlabel(f"Top {bar_shown} Relative Importances")
-				plt.xticks(rotation="vertical")
-				plt.title(f"Mean R-squared: {round(np.mean(my_accuracy), 3)}")
-				plt.suptitle(f"Feature importance: {resp_var}")
-				# pdf.savefig(bbox_inches='tight')
-				pdf.savefig()
-				plt.clf()
+		try:
+			# print(c_statistic_harrell(modl_predict.tolist(), resp_test.tolist()))
+			shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
+			# print(shap_values)
+			shap.summary_plot(shap_values, pred_df)
+			# plt.title(f"{resp_var}")
+			plt.suptitle(f"SHAP Summary, {resp_var}")
+			pdf.savefig()
+			plt.close()
+		except Exception as e:
+			print(f"Exception: shap summary {resp_var}")
+			print(e)
+		try:
+			shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
+			shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train)
+			plt.suptitle(f"SHAP decision, {resp_var}")
+			pdf.savefig()
+			plt.close()
+		except Exception as e:
+			print(f"Exception: shap decision {resp_var}")
+			print(e)
+		
+		if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
+			plt.barh(y=feature_mean.index[0:bar_shown], width=feature_mean[0:bar_shown], xerr=feature_std)
+			plt.xlabel(f"Top {bar_shown} Relative Importances")
+			plt.xticks(rotation="vertical")
+			plt.title(f"Mean accuracy: {round(np.mean(my_accuracy), 3)}")
+			plt.suptitle(f"Feature importance: {resp_var}")
+			pdf.savefig(bbox_inches='tight')
+			plt.close()
+			print("making confusion matrix")
+			cnf_matrix = confusion_matrix(responses, predictions)
+			# print(str(cnf_matrix))
+			disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix).plot()
+			plt.title(f"{options.title}, {resp_var}")
+			# pdf.savefig(bbox_inches='tight')
+			pdf.savefig()
+			plt.close()
+		else:
+			print("else")
+			plt.barh(feature_mean.index[0:bar_shown], feature_mean[0:bar_shown], xerr=feature_std)
+			plt.xlabel(f"Top {bar_shown} Relative Importances")
+			plt.xticks(rotation="vertical")
+			plt.title(f"Mean R-squared: {round(np.mean(my_accuracy), 3)}")
+			plt.suptitle(f"Feature importance: {resp_var}")
+			# pdf.savefig(bbox_inches='tight')
+			pdf.savefig()
+			plt.clf()
 	print(f"Saving average feature importance")
 	ave_feature_importance = pd.DataFrame(ave_feature_importance)
 	ave_feature_importance = ave_feature_importance.reindex(ave_feature_importance.mean().sort_values(ascending=False).index, axis=1)
