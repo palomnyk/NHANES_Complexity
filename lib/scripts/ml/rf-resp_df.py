@@ -140,7 +140,7 @@ id_list = response_df.loc[:,options.id_var]
 #output files
 output_label = f"{resp_col_label}{options.output_label}"
 output_label = output_label.replace("/", "")
-result_fpath = os.path.join(output_dir, "tables", f"{output_label}_data.csv")
+result_fpath = os.path.join(output_dir, "tables", f"{output_label}_scores.csv")
 pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_feat_import.pdf")
 
 seed = 7

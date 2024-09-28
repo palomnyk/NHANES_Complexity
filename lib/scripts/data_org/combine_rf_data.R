@@ -1,5 +1,5 @@
 # Author: Aaron Yerke (aaronyerke@gmail.com)
-# Script for combining the "_data.csv" files from each response var into one taboe
+# Script for combining the "_scores.csv" files from each response var into one final
 # diet data.
 
 rm(list = ls()) #clear workspace
@@ -41,7 +41,7 @@ dataset_name <- FALSE
 #### Loading in data ####
 
 # get file names in output_dir
-dir_files <- list.files(file.path(output_dir, "tables"), pattern = "_data.csv")
+dir_files <- list.files(file.path(output_dir, "tables"), pattern = "_scores.csv")
 
 print(paste("data files found:", paste(dir_files, collapse = ", ")))
 
@@ -53,12 +53,12 @@ for (fl in 1:length(dir_files)) {
   print(fl)
   full_name <- dir_files[fl]
   print(full_name)
-  if (grepl(opt$fn_root, full_name) & startsWith(full_name, "1col") & endsWith(full_name, "_data.csv")){
+  if (grepl(opt$fn_root, full_name) & startsWith(full_name, "1col") & endsWith(full_name, "_scores.csv")){
     part_name <- gsub("1col", "", full_name)
     my_splits <- unlist(strsplit(part_name, c("?"), fixed = TRUE))
     print(my_splits)
     my_column <- my_splits[1]
-    my_ds <- gsub("_data.csv", "", my_splits[2])
+    my_ds <- gsub("_scores.csv", "", my_splits[2])
     print(paste(my_ds, dataset_name))
     if (dataset_name == FALSE){
       dataset_name <- my_ds
@@ -80,7 +80,7 @@ for (fl in 1:length(dir_files)) {
 }# End main for loop
 
 print("Finished loop!")
-f_path <- file.path(output_dir, "tables", paste0(dataset_name,"_data.csv"))
+f_path <- file.path(output_dir, "tables", paste0(dataset_name,"_scores.csv"))
 write.csv(final_table, file = f_path, row.names = FALSE)
 
 print("Reached end of R script!")

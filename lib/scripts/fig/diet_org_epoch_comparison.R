@@ -41,7 +41,7 @@ numeric_only <- c("Total Cholesterol (mg/dL","Triglyceride (mg/dL",
 id_var <- "Respondent sequence number"
 
 #### Loading in data ####
-first_df <- read.csv("output/diet_d1d2_2009-2020/tables/my_nutri_only_d1d2_2009-2020_data.csv",
+first_df <- read.csv("output/diet_d1d2_2009-2020/tables/my_nutri_only_d1d2_2009-2020_scores.csv",
                      header = TRUE)
 first_df <- first_df[,2:ncol(first_df)]
 first_df$dataset <- rep("2009-2020", nrow(first_df))
@@ -49,7 +49,7 @@ first_df$dataset <- rep("2009-2020", nrow(first_df))
 first_long <- reshape2::melt(first_df, id.vars = c("dataset","response_var"),
                              variable.name = "split")
 
-sec_df <- read.csv("output/diet_test_d1d2/tables/nutri_only_d1d2_data.csv",
+sec_df <- read.csv("output/diet_test_d1d2/tables/nutri_only_d1d2_scores.csv",
                      header = TRUE)
 sec_df <- sec_df[,2:ncol(sec_df)]
 sec_df$dataset <- rep("2015", nrow(sec_df))

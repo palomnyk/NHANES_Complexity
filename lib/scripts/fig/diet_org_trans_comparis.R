@@ -79,7 +79,7 @@ plot_data <- function (df_table, f_column = "org_method", title_text){
 #### Parse commandline arguements ####
 option_list <- list(
   optparse::make_option(c("-o", "--out_subdir"), type="character", 
-                        default=file.path("diet_test_d1d2_trans"), 
+                        default=file.path("proper_days"), 
                         help="dataset dir path"),
   optparse::make_option(c("-r", "--fn_root"), type="character", 
                         default=file.path("cat_grams_d1d2"), 
@@ -102,7 +102,7 @@ id_var <- "Respondent sequence number"
 #### Loading in data ####
 
 # get file names in output_dir
-dir_files <- list.files(file.path(output_dir, "tables"), pattern = "_data.csv")
+dir_files <- list.files(file.path(output_dir, "tables"), pattern = "_scores.csv")
 
 print(paste("data files found:", paste(dir_files, collapse = ", ")))
 
@@ -116,7 +116,7 @@ print("Data loaded!")
 # Iterate through files and populate variables
 for (suf in 1:length(suffixs)){
   suffix <- suffixs[suf]
-  f_path <- file.path("output", opt$out_subdir, "tables", paste0(opt$fn_root, suffix, "_data.csv"))
+  f_path <- file.path("output", opt$out_subdir, "tables", paste0(opt$fn_root, suffix, "_scores.csv"))
   if (file.exists(f_path)){
     my_table <- read.csv(f_path,
                          header = T, check.names = F)

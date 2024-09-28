@@ -79,7 +79,7 @@ plot_data <- function (df_table, f_column = "org_method", title_text){
 #### Parse commandline arguements ####
 option_list <- list(
   optparse::make_option(c("-o", "--out_subdir"), type="character", 
-                        default=file.path("diet_test"), 
+                        default=file.path("proper_days"), 
                         help="dataset dir path")
 );
 opt_parser <- optparse::OptionParser(option_list=option_list);
@@ -99,7 +99,7 @@ numeric_only <- c("Total Cholesterol (mg/dL","Triglyceride (mg/dL",
 id_var <- "Respondent sequence number"
 
 # get file names in output_dir
-dir_files <- list.files(file.path(output_dir, "tables"), pattern = "_data.csv")
+dir_files <- list.files(file.path(output_dir, "tables"), pattern = "_scores.csv")
   
 print(paste("data files found:", paste(dir_files, collapse = ", ")))
 
@@ -119,7 +119,7 @@ for (i in 1:length(dir_files)){
     for (r in 2:nrow(my_table)){
       if (my_table$response_var[r] != id_var){
         response_var <- c(response_var, rep(my_table$response_var[r], 10))
-        org_method <- c(org_method, rep(gsub("_data.csv", "", dat_f), 10))
+        org_method <- c(org_method, rep(gsub("_scores.csv", "", dat_f), 10))
         score <- c(score, unlist(my_table[r, 3:ncol(my_table)]))
       }
     }
@@ -144,7 +144,7 @@ my_order <- c(
 
 big_table$response_var <- factor(big_table$response_var, levels = my_order)
 
-pdf(file.path(output_dir, "graphics", "all_diet_orgs.pdf"), width = 18, height = 10)
+# pdf(file.path(output_dir, "graphics", "all_diet_orgs.pdf"), width = 18, height = 10)
 
 org_meth_plot(big_table, "Nutrition data org strategies full result")
 resp_vars_plot(big_table, "Nutrition data org strategies full result")
@@ -170,6 +170,6 @@ num_table <- big_table[big_table$response_var %in% numeric_only,]
 org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
 resp_vars_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
 
-dev.off()
+# dev.off()
 
 print("End of R script!")

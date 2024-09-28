@@ -98,7 +98,7 @@ numeric_only <- c("Total Cholesterol (mg/dL","Triglyceride (mg/dL",
 id_var <- "Respondent sequence number"
 
 # get file names in output_dir
-dir_files <- list.files(file.path(output_dir, "tables"), pattern = "_data.csv")
+dir_files <- list.files(file.path(output_dir, "tables"), pattern = "_scores.csv")
   
 print(paste("data files found:", paste(dir_files, collapse = ", ")))
 
@@ -126,10 +126,10 @@ for (i in 1:length(dir_files)){
     for (r in 2:nrow(my_table)){
       if (my_table$response_var[r] != id_var){
         response_var <- c(response_var, rep(my_table$response_var[r], 10))
-        org_name <- c(org_name, rep(gsub("-2015_data.csv", "", dat_f), 10))
+        org_name <- c(org_name, rep(gsub("-2015_scores.csv", "", dat_f), 10))
         day <- c(day, rep(my_day, 10))
         score <- c(score, unlist(my_table[r, 3:ncol(my_table)]))
-        my_method <- gsub("_data.csv", "", dat_f)
+        my_method <- gsub("_scores.csv", "", dat_f)
         my_method <- gsub(paste0("-",my_day,"-"), "", my_method)
         my_method <- gsub("2015", "", my_method)
         org_method <- c(org_method, rep(my_method,10))
@@ -155,7 +155,7 @@ big_table$response_var <- factor(big_table$response_var, levels = my_order)
 print(unique(big_table$response_var))
 
 #### Analysis ####
-# pdf(file.path(output_dir, "graphics", "all_diet_orgs_days.pdf"), width = 18, height = 10)
+pdf(file.path(output_dir, "graphics", "all_diet_orgs_days.pdf"), width = 18, height = 10)
 ##### ANOVA for days with plot #####
 myLm = lm(score ~ day, data = big_table)
 pval = anova(myLm)$"Pr(>F)"[1]
@@ -256,6 +256,6 @@ num_table <- big_table[big_table$response_var %in% numeric_only,]
 org_meth_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
 resp_vars_plot(num_table, "Nutrition data organization strategies NO TRIG NUM ONLY")
 
-# dev.off()
+dev.off()
 
 print("End of R script!")

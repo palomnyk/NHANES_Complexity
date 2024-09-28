@@ -25,9 +25,9 @@ output_subdir="diet_test_d1d2"
 
 rule complete:
 	input:
-		"output/unit_test/tables/rf_test_data.csv",
-		# expand("output/proper_days/tables/{diet_org}-d1-2015_data.csv", diet_org=diet_orgs),
-		# expand("output/proper_days/tables/{diet_org}-d1d2-2015_data.csv", diet_org=diet_orgs),
+		"output/unit_test/tables/rf_test_scores.csv",
+		# expand("output/proper_days/tables/{diet_org}-d1-2015_scores.csv", diet_org=diet_orgs),
+		# expand("output/proper_days/tables/{diet_org}-d1d2-2015_scores.csv", diet_org=diet_orgs),
 		# expand("Data/diet/d1_{diet_org}_2015.csv", diet_org=diet_orgs),
 		# expand("Data/diet/helper_d1d2_{diet_org}_2015.csv", diet_org=diet_orgs),
 		os.path.join("output","proper_days", "graphics", "all_diet_orgs_days.pdf")
@@ -52,7 +52,7 @@ checkpoint create_test_rf_dataset:
 def get_test_resp_column_names(wildcards):
 	df_path = checkpoints.create_test_rf_dataset.get(**wildcards).output[1]
 	df = pd.read_csv(df_path, sep=",", header=0)
-	return expand("output/unit_test/tables/1col{test_column}?rf_test_data.csv", test_column=df.columns.values)
+	return expand("output/unit_test/tables/1col{test_column}?rf_test_scores.csv", test_column=df.columns.values)
 
 rule get_test_rf_resp_features:
     input: get_test_resp_column_names
@@ -60,7 +60,7 @@ rule get_test_rf_resp_features:
 rule aggregate_rf_tables_test_data:
 	conda:"env/python_conda_env.yml"
 	input: rules.get_test_rf_resp_features.input[0]
-	output: "output/unit_test/tables/rf_test_data.csv"
+	output: "output/unit_test/tables/rf_test_scores.csv"
 	shell:
 		"""
 		echo "{input}"
@@ -73,7 +73,7 @@ rule rf_test_dataset:
 		pred = "Data/unit_test/mtc_predictor.csv",
 		resp = "Data/unit_test/mtc_response.csv"
 	output:
-		"output/unit_test/tables/1col{test_column:q}?rf_test_data.csv"
+		"output/unit_test/tables/1col{test_column:q}?rf_test_scores.csv"
 	shell:
 		"""
 		echo $PWD
@@ -204,7 +204,7 @@ rule rand_forest_d1_2015_VS_cardio_features:
 		resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
 		diet_data = "Data/diet/helper_d1_{diet_org}_2015.csv"
 	output:
-		"output/proper_days/tables/{diet_org}-d1-2015_data.csv",
+		"output/proper_days/tables/{diet_org}-d1-2015_scores.csv",
 	resources:
 		runtime=2880, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem="60gb"
@@ -225,7 +225,7 @@ rule rand_forest_d1d2_2015_VS_cardio_features:
 		resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
 		diet_data = "Data/diet/helper_d1d2_{diet_org}_2015.csv"
 	output:
-		"output/proper_days/tables/{diet_org}-d1d2-2015_data.csv"
+		"output/proper_days/tables/{diet_org}-d1d2-2015_scores.csv"
 	resources:
 		runtime=2880, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem="60gb"
@@ -247,7 +247,7 @@ rule diet_org_2015_comparison:
 		output_subdir="proper_days",
 		r_script="lib/scripts/fig/diet_org_day_compare.R"
 	input:
-		expand("output/proper_days/tables/{diet_org}-{day}-2015_data.csv", diet_org=diet_orgs, day=days)
+		expand("output/proper_days/tables/{diet_org}-{day}-2015_scores.csv", diet_org=diet_orgs, day=days)
 	output:
 		os.path.join("output","proper_days", "graphics", "all_diet_orgs_days.pdf")
 	resources:
@@ -281,7 +281,7 @@ rule diet_org_2015_comparison:
 
 # rule aggregate_2015_rf_resp_features:
 #     input: get_2015_resp_features
-#     output: "output/proper_days/tables/rf_test_data.csv"
+#     output: "output/proper_days/tables/rf_test_scores.csv"
 #     shell:
 #         """
 #         Rscript --out_subdir diet_d1d2_2015 --fn_root {wildcards.diet_org_no_cat:q}_2015
@@ -291,7 +291,7 @@ rule diet_org_2015_comparison:
 # def get_2009_2020_rf_resp_features(wildcards):
 # 	df_path = checkpoints.create_resp_2009_2020_dataset.get(**wildcards).output[1]
 # 	df = pd.read_csv(df_path, sep=",", header=0)
-# 	return expand("output/diet_test_d1d2/tables/1c{resp_col_2009_2020}?{diet_org_no_cat}_2009-2020_data.csv", \
+# 	return expand("output/diet_test_d1d2/tables/1c{resp_col_2009_2020}?{diet_org_no_cat}_2009-2020_scores.csv", \
 # 	zip, resp_col_2009_2020=df.columns.values, diet_org_no_cat=diet_orgs_no_cat)
 
 # rule get_2009_2020_rf_resp_features:
@@ -299,7 +299,7 @@ rule diet_org_2015_comparison:
 
 # rule aggregate_2009_2020_rf_data:
 # 	input: rules.get_test_rf_resp_features.input[0]
-# 	output: expand("output/diet_test_d1d2/tables/{diet_org_no_cat}_2009-2020_data.csv", diet_org_no_cat=diet_orgs_no_cat)
+# 	output: expand("output/diet_test_d1d2/tables/{diet_org_no_cat}_2009-2020_scores.csv", diet_org_no_cat=diet_orgs_no_cat)
 # 	shell:
 # 		"""
 # 		Rscript lib/scripts/data_org/combine_rf_data.R --out_subdir diet_2009-2020\
@@ -312,7 +312,7 @@ rule diet_org_2015_comparison:
 # 	params:
 # 		output_subdir=output_subdir
 # 	input:
-# 		expand("output/diet_test_d1d2/tables/{diet_org_no_cat}_2009-2020_data.csv", diet_org_no_cat=diet_orgs_no_cat)
+# 		expand("output/diet_test_d1d2/tables/{diet_org_no_cat}_2009-2020_scores.csv", diet_org_no_cat=diet_orgs_no_cat)
 # 	output:
 # 		os.path.join("output","diet_test_d1d2", "graphics", "2009-2020_all_diet_orgs.pdf")
 # 	shell:
@@ -338,12 +338,12 @@ rule diet_org_2015_comparison:
 # rule rf_2009_2020_datasets:
 # 	conda:"env/python_conda_env.yml"
 # 	input:
-# 		pred = "Data/diet/multi_year/{wildcards.diet_org_no_cat:q}_2009-2020_data.csv",
+# 		pred = "Data/diet/multi_year/{wildcards.diet_org_no_cat:q}_2009-2020_scores.csv",
 # 		resp = "Data/respns_vars/2009-2020cardio_respns_vars.csv"
 # 	output:
-# 	#     expand("output/diet_test_d1d2/tables/1c{resp_col_2009_2020}?{diet_org_no_cat}_2009-2020_data.csv", \
+# 	#     expand("output/diet_test_d1d2/tables/1c{resp_col_2009_2020}?{diet_org_no_cat}_2009-2020_scores.csv", \
 # 	# zip, resp_col_2009_2020=wildcards.resp_col_2009_2020, diet_org_no_cat=wildcards.diet_org_no_cat)
-# 		"output/diet_test_d1d2/tables/1col{resp_col_2009-2020}?{diet_org_no_cat}_2009-2020_data.csv"
+# 		"output/diet_test_d1d2/tables/1col{resp_col_2009-2020}?{diet_org_no_cat}_2009-2020_scores.csv"
 # 	shell:
 # 		"""
 # 		echo $PWD
@@ -378,7 +378,7 @@ rule diet_org_2015_comparison:
 #     params:
 #         output_subdir=output_subdir
 #     input:
-#         expand("output/diet_test_d1d2/tables/{diet_org}_data.csv", diet_org=diet_orgs)
+#         expand("output/diet_test_d1d2/tables/{diet_org}_scores.csv", diet_org=diet_orgs)
 #     output:
 #         os.path.join("output","diet_test_d1d2", "graphics", "all_diet_orgs.pdf")
 #     shell:
@@ -390,11 +390,11 @@ rule diet_org_2015_comparison:
 # def get_2015_resp_features(wildcards):
 #     df_path = checkpoints.create_resp_var_table_2015.get(**wildcards).output[0]
 #     df = pd.read_csv(df_path, sep=",", header=0)
-#     return expand("output/unit_test/tables/1c{resp_2015}?rf_test_data.csv", resp_2015=df.columns.values)
+#     return expand("output/unit_test/tables/1c{resp_2015}?rf_test_scores.csv", resp_2015=df.columns.values)
 
 # rule aggregate_2015_rf_resp_features:
 #     input: get_2015_resp_features
-#     output: "output/unit_test/tables/rf_test_data.csv"
+#     output: "output/unit_test/tables/rf_test_scores.csv"
 #     shell:
 #         """
 #         Rscript --out_subdir diet_d1d2_2015 --fn_root {wildcards.diet_org_no_cat:q}_2015
