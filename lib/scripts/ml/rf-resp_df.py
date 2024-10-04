@@ -7,6 +7,8 @@
 # Interesting resources for SHAP values:
 # 	1: https://shap.readthedocs.io/en/latest/example_notebooks/tabular_examples/tree_based_models/NHANES%20I%20Survival%20Model.html
 # 		-Uses NHANES data for example
+# 	2: https://www.kaggle.com/code/wti200/analysing-interactions-with-shap/notebook
+
 # --------------------------------------------------------------------------
 print("Loading external libraries.",flush = True)
 # --------------------------------------------------------------------------
@@ -82,16 +84,6 @@ parser.add_argument("-v", "--id_var", default="Respondent sequence number",
 options, unknown = parser.parse_known_args()
 
 print(options)
-
-"""
-python lib/scripts/ml/rf_resp_df.py \
-	--response_fn Data/resp_vars/cardio_respns_vars.csv \
-	--delimeter , \
-	--pred_path Data/diet/d1_nutri_food_g_2015.csv \
-	--out_folder diet_test \
-	--output_label nutr_food_grams \
-	--title nutri_food_grams
-"""
 
 # --------------------------------------------------------------------------
 print("Defining functions", flush = True)
@@ -216,22 +208,44 @@ with open(result_fpath, "w+") as fl:
 		print("debug feature_importance")
 		# print(feature_importance)
 		full_accuracy.extend(my_accuracy)
+		# rebuild feature importance df and select only rows from our response variable
 		feature_df = pd.DataFrame(feature_importance)
 		my_rows = [n for n,x in enumerate(feature_resp_var) if x==resp_var]
 		feature_df = feature_df.loc[my_rows,:]
 		
 		# Order the features by importance
-		feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
-		feature_mean = feature_df.mean(axis=0)
+		# feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
+		feature_mean = pd.DataFrame(feature_df.mean(axis=0)).sort_values(0, ascending=False)
 		feature_std = feature_df.std(axis=0)
+		feature_mean.insert(1, "std", feature_std)
 		try:
-			shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
+			# shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
 			# print(shap_values)
-			shap.summary_plot(shap_values, pred_df)
-			# plt.title(f"{resp_var}")
-			plt.suptitle(f"Final cross validation\nSHAP Summary, {resp_var}")
-			pdf.savefig()
-			plt.close()
+			# shap.summary_plot(shap_values, pred_df, plot_type='dot', max_display=bar_shown, show = False)
+			# # plt.title(f"{resp_var}")
+			# plt.suptitle(f"Final cross validation\nSHAP Summary, {resp_var}")
+			# pdf.savefig()
+			# plt.close()
+
+			explainer = shap.Explainer(clf, pred_df)
+			shap_values = explainer(pred_df)
+			print("shape_values.shape")
+			print(shap_values.shape)
+			if model_name == "RF_Classifier":
+				print(shap_values)
+				# max_display=bar_shown, order=shap_values[:,:,1].abs.max(0)
+				shap.plots.beeswarm(shap_values[:,:,1], show = False)
+				plt.suptitle(f"Final cross validation\nSHAP beeswarm, {resp_var}")
+				pdf.savefig(bbox_inches='tight')
+				plt.close()
+			else:
+				shap.plots.beeswarm(shap_values, show = False)
+				plt.suptitle(f"Final cross validation\nSHAP beeswarm, {resp_var}")
+				pdf.savefig(bbox_inches='tight')
+				plt.close()
+			# top_5 = 
+			# for dep in 
+			# shap.plots.scatter(shap_values[:, "Age"], color=shap_values[:, "Capital Gain"])
 		except Exception as e:
 			print(f"Exception: shap summary {resp_var}")
 			print(e)
@@ -245,7 +259,7 @@ with open(result_fpath, "w+") as fl:
 			print(f"Exception: shap decision {resp_var}")
 			print(e)
 
-		plt.barh(y=feature_mean.index[0:bar_shown], width=feature_mean[0:bar_shown], xerr=feature_std)
+		plt.barh(y=feature_mean.index[0:bar_shown], width=feature_mean.iloc[0:bar_shown,0], xerr=feature_mean.iloc[0:bar_shown,1])
 		plt.xlabel(f"Top {bar_shown} Relative Importances")
 		plt.xticks(rotation="vertical")
 		plt.title(f"{model_name} score: {round(np.mean(my_accuracy), 3)}")
