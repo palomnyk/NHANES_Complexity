@@ -20,6 +20,7 @@ dependencies:
   - scipy
   - statsmodels
   - pip
+  - shap #for making feature importance plots
   - r-base=4.3
   - r-ggplot2
   - r-BiocManager
@@ -34,3 +35,6 @@ dependencies:
 #  conda install -c conda-forge pycaret
 #To remove this env:
 #  conda remove -n python_ml_conda --all
+#To update the env after updating the yml
+#  conda deactivate
+#  conda env update --file workflow/env/python_conda_env.yml --prune
