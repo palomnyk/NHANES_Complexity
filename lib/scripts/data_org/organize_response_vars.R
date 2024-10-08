@@ -131,6 +131,9 @@ full_df$unhealthy_tot_chol <- full_df$`Total Cholesterol (mg/dL` >= 200
 full_df$unhealthy_trig <- full_df$`Triglyceride (mg/dL` >= 150
 full_df$unhealthy_ldl <- full_df$`LDL-cholesterol (mg/dL` >= 100
 full_df$unhealthy_hdl <- full_df$`Direct HDL-Cholesterol (mg/dL` < 60
+health_cols <- c("hypertension_either","unhealthy_tot_chol", "unhealthy_trig",
+                 "unhealthy_ldl", "unhealthy_hdl")
+full_df$any_CVD_marker <- rowSums(full_df[,health_cols], na.rm = TRUE) > 1L
 
 remove_cols <- c("no_bp_med","no_chol_med","Group.1")
 full_df <- subset(full_df, select = !(names(full_df) %in% remove_cols))
