@@ -34,7 +34,7 @@ source(file.path("lib", "scripts","data_org", "data_org_func.R"))
 
 #### Establish directory layout and other constants ####
 output_dir <- file.path("Data", "diet")
-dir.create(output_dir)
+dir.create(file.path(output_dir), showWarnings = FALSE)
 
 #### Loading in data ####
 food_codes <- readxl::read_excel(file.path("Data", "diet", "WWEIA1516_foodcat_FNDDS.xlsx"), 
@@ -74,8 +74,12 @@ nutr_d1d2_diet_2015 <- rowsum(d1d2_diet_2015[,nutr_vars],
                        group = d1d2_diet_2015[,id_var], na.rm=T)
 nutr_d1d2_diet_2015[,id_var] <- row.names(nutr_d1d2_diet_2015)
 
-dir.create(file.path(output_dir), showWarnings = FALSE)
-save_all_transforms(output_dir, "d1d2_nutr_only_2015", nutr_d1d2_diet_2015)
+##### Create nutritional variation column #####
+num_uniq_foods <- aggregate(`USDA food code` ~ `Respondent sequence number`, data = d1d2_diet_2015, FUN = length)
+names(num_uniq_foods)[names(num_uniq_foods) == "USDA food code"] <- "num_uniq_foods"
+save_df <- merge(nutr_d1d2_diet_2015, num_uniq_foods, by = id_var)
+
+save_all_transforms(output_dir, "d1d2_nutr_only-2015", save_df)
 
 num_only <- nutr_d1d2_diet_2015[,which(! names(nutr_d1d2_diet_2015) %in% c(id_var))]
 min_val <- min(num_only[num_only > 0])
@@ -93,10 +97,12 @@ USDA_food_g_only <- two_column_dummy(d1d2_diet_2015,
                     count_colnm = "Gram weight of the food/individual component")
 print(paste("Number of adult diet participants:", nrow(USDA_food_g_only)))
 
-save_all_transforms(output_dir, "d1d2_food_g_2015", USDA_food_g_only)
+save_df <- merge(USDA_food_g_only, num_uniq_foods, by = id_var)
+save_all_transforms(output_dir, "d1d2_food_g-2015", save_df)
 
 nutri_food_g <- merge(USDA_food_g_only, nutr_d1d2_diet_2015, by = id_var)
-save_all_transforms(output_dir, "d1d2_nutri_food_g_2015", nutri_food_g)
+save_df <- merge(nutri_food_g, num_uniq_foods, by = id_var)
+save_all_transforms(output_dir, "d1d2_nutri_food_g-2015", save_df)
 
 USDA_food_simple <- data.frame(
   subset(d1d2_diet_2015, select = c("USDA food code", id_var)), check.names = F)
@@ -105,16 +111,17 @@ USDA_food_simple <- fastDummies::dummy_cols(USDA_food_simple,
                                               select_columns = c("USDA food code"),
                                               ignore_na = TRUE, remove_selected_columns = TRUE)
 
-USDA_food_simple$`USDA food code` <- as.character(USDA_food_simple$`USDA food code`)
+# USDA_food_simple$`USDA food code` <- as.character(USDA_food_simple$`USDA food code`)
 
 USDA_food_simple <- rowsum(USDA_food_simple,
                              group = USDA_food_simple[,id_var],na.rm=T, )
 USDA_food_simple[,id_var] <- row.names(USDA_food_simple)
-
-save_all_transforms(output_dir, "d1d2_food_2015", USDA_food_simple)
+save_df <- merge(USDA_food_simple, num_uniq_foods, by = id_var)
+save_all_transforms(output_dir, "d1d2_food-2015", save_df)
 
 nutri_food_simple <- merge(USDA_food_simple, nutr_d1d2_diet_2015, by = id_var)
-save_all_transforms(output_dir, "d1d2_nutri_food_2015", nutri_food_simple)
+save_df <- merge(nutri_food_simple, num_uniq_foods, by = id_var)
+save_all_transforms(output_dir, "d1d2_nutri_food-2015", save_df)
 # d1_tot_diet_2015 <- download_org_nhanes(dt_group = "DIET", nh_tble = "DR1TOT_I")
 
 #### Food categories ####
@@ -125,10 +132,11 @@ cat_g_only <- two_column_dummy(d1d2_diet_2015,
                                      item_colnm = "USDA food code",
                                      count_colnm = "Gram weight of the food/individual component")
 print(paste("Number of adult diet participants:", nrow(cat_g_only)))
-save_all_transforms(output_dir, "d1d2_cat_g_2015", cat_g_only)
+save_all_transforms(output_dir, "d1d2_cat_g-2015", cat_g_only)
 
 nutri_food_g <- merge(cat_g_only, nutr_d1d2_diet_2015, by = id_var)
-save_all_transforms(output_dir, "d1d2_nutri_cat_g_2015", nutri_food_g)
+save_df <- merge(nutri_food_g, num_uniq_foods, by = id_var)
+save_all_transforms(output_dir, "d1d2_nutri_cat_g-2015", save_df)
 
 cat_simple <- subset(d1d2_diet_2015, select = c("USDA food code", id_var))
 
@@ -139,17 +147,21 @@ cat_simple <- fastDummies::dummy_cols(cat_simple,
 cat_simple <- rowsum(cat_simple,
                            group = cat_simple[,id_var],na.rm=T, )
 cat_simple[,id_var] <- row.names(cat_simple)
-save_all_transforms(output_dir, "d1d2_cat_2015", cat_simple)
+save_df <- merge(cat_simple, num_uniq_foods, by = id_var)
+save_all_transforms(output_dir, "d1d2_cat-2015", save_df)
 
 nutri_food_simple <- merge(cat_simple, nutr_d1d2_diet_2015, by = id_var)
-save_all_transforms(output_dir, "d1d2_nutri_cat_2015", nutri_food_simple)
+save_df <- merge(nutri_food_simple, num_uniq_foods, by = id_var)
+save_all_transforms(output_dir, "d1d2_nutri_cat-2015", save_df)
 
 # G. Category grams + food grams + nutrient (10)
 nutri_food_g_cat_g <- merge(nutri_food_g, USDA_food_g_only)
-save_all_transforms(output_dir, "d1d2_nutri_food_g_cat_g_2015", nutri_food_g_cat_g)
+save_df <- merge(nutri_food_g_cat_g, num_uniq_foods, by = id_var)
+save_all_transforms(output_dir, "d1d2_nutri_food_g_cat_g-2015", save_df)
 
 # H. Category simple + food simple + nutrient (11)
 nutri_food_cat <- merge(nutri_food_simple, USDA_food_simple)
-save_all_transforms(output_dir, "d1d2_nutri_food_cat_2015", nutri_food_cat)
+save_df <- merge(nutri_food_cat, num_uniq_foods, by = id_var)
+save_all_transforms(output_dir, "d1d2_nutri_food_cat-2015", save_df)
 
 print("End R script.")
