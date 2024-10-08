@@ -80,6 +80,9 @@ parser.add_argument("-t", "--title", default=False,
 parser.add_argument("-v", "--id_var", default="Respondent sequence number",
                   help="String, column name of row variables",
                   metavar="id_var", dest="id_var")
+parser.add_argument("-s", "--respons_df_start", default=0, type=int,
+                  help="integer, use if wanting to skip first _____ column. use if response_col isn't selected",
+                  metavar="respons_df_start", dest="respons_df_start")
 
 options, unknown = parser.parse_known_args()
 
@@ -116,7 +119,7 @@ response_df = pd.read_csv(os.path.join(".",options.resp_fn), \
 
 #set labels for output files and select column to use in response var
 if options.response_col == False:
-	response_cols = response_df.columns
+	response_cols = response_df.columns[options.respons_df_start:]
 	resp_col_label = ""
 else:
 	response_cols = [options.response_col]
@@ -159,7 +162,7 @@ with open(result_fpath, "w+") as fl:
 		predictions = []
 		kfold = model_selection.KFold(n_splits=num_cv_folds, random_state=seed, shuffle=True)
 		for train, test in kfold.split(intersect_safe_ids):
-			print(f"train: {len(train)}, test: {len(test)}")
+			print(f"{resp_var}: train: {len(train)}, test: {len(test)}")
 			train = [intersect_safe_ids[x] for x in train]
 			test = [intersect_safe_ids[x] for x in test]
 			pred_train = pred_df.loc[pred_df.index.isin(train),:]#selects whole dataframe
@@ -218,47 +221,6 @@ with open(result_fpath, "w+") as fl:
 		feature_mean = pd.DataFrame(feature_df.mean(axis=0)).sort_values(0, ascending=False)
 		feature_std = feature_df.std(axis=0)
 		feature_mean.insert(1, "std", feature_std)
-		try:
-			# shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
-			# print(shap_values)
-			# shap.summary_plot(shap_values, pred_df, plot_type='dot', max_display=bar_shown, show = False)
-			# # plt.title(f"{resp_var}")
-			# plt.suptitle(f"Final cross validation\nSHAP Summary, {resp_var}")
-			# pdf.savefig()
-			# plt.close()
-
-			explainer = shap.Explainer(clf, pred_df)
-			shap_values = explainer(pred_df)
-			print("shape_values.shape")
-			print(shap_values.shape)
-			if model_name == "RF_Classifier":
-				print(shap_values)
-				# max_display=bar_shown, order=shap_values[:,:,1].abs.max(0)
-				shap.plots.beeswarm(shap_values[:,:,1], show = False)
-				plt.suptitle(f"Final cross validation\nSHAP beeswarm, {resp_var}")
-				pdf.savefig(bbox_inches='tight')
-				plt.close()
-			else:
-				shap.plots.beeswarm(shap_values, show = False)
-				plt.suptitle(f"Final cross validation\nSHAP beeswarm, {resp_var}")
-				pdf.savefig(bbox_inches='tight')
-				plt.close()
-			# top_5 = 
-			# for dep in 
-			# shap.plots.scatter(shap_values[:, "Age"], color=shap_values[:, "Capital Gain"])
-		except Exception as e:
-			print(f"Exception: shap summary {resp_var}")
-			print(e)
-		try:
-			shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
-			shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train)
-			plt.suptitle(f"Final cross validation\nSHAP decision, {resp_var}")
-			pdf.savefig()
-			plt.close()
-		except Exception as e:
-			print(f"Exception: shap decision {resp_var}")
-			print(e)
-
 		plt.barh(y=feature_mean.index[0:bar_shown], width=feature_mean.iloc[0:bar_shown,0], xerr=feature_mean.iloc[0:bar_shown,1])
 		plt.xlabel(f"Top {bar_shown} Relative Importances")
 		plt.xticks(rotation="vertical")
@@ -274,6 +236,49 @@ with open(result_fpath, "w+") as fl:
 			plt.title(f"{options.title}, {resp_var}")
 			pdf.savefig()
 			plt.close()
+		try:
+			explainer = shap.Explainer(clf, pred_df)
+			shap_values = explainer(pred_df)
+			print("shape_values.shape")
+			print(shap_values.shape)
+			if model_name == "RF_Classifier":
+				print(shap_values)
+				# max_display=bar_shown, order=shap_values[:,:,1].abs.max(0)
+				shap.plots.beeswarm(shap_values[:,:,1], show = False)
+				plt.suptitle(f"Final cross validation\nSHAP beeswarm, {resp_var}")
+				pdf.savefig(bbox_inches='tight')
+				plt.close()
+			else:
+				shap.plots.beeswarm(shap_values, show = False, order=shap_values.abs.max(0))
+				plt.suptitle(f"Final cross validation\nSHAP beeswarm, {resp_var}")
+				pdf.savefig(bbox_inches='tight')
+				plt.close()
+		except Exception as e:
+			print(f"Exception: shap summary {resp_var}")
+			print(e)
+		try:
+			top_features = feature_mean.index[0:3].tolist()
+			# shap.dependence_plot("wt", shap_values, pred_df)
+			for dep in top_features:
+				print(dep)
+				shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
+				shap.dependence_plot(dep, shap_values, pred_df, show = False,)
+				plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
+				pdf.savefig(bbox_inches='tight')
+				plt.close()
+		except Exception as e:
+			print(f"Exception: shap dependency {resp_var}")
+			print(e)
+		try:
+			shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
+			shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train, show=False)
+			plt.suptitle(f"Final cross validation\nSHAP decision, {resp_var}")
+			pdf.savefig()
+			plt.close()
+		except Exception as e:
+			print(f"Exception: shap decision {resp_var}")
+			print(e)
+			
 	print(f"Saving feature importances")
 	feature_df = pd.DataFrame(feature_importance)
 	print(feature_df)
