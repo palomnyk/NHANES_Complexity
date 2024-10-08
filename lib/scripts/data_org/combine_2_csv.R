@@ -1,5 +1,5 @@
 # Author: Aaron Yerke (aaronyerke@gmail.com)
-# Script for combining two predictor variables along a specfic column.
+# Script for combining two predictor variables along a specific column.
 
 rm(list = ls()) #clear workspace
 chooseCRANmirror(graphics=FALSE, ind=66)
@@ -51,6 +51,8 @@ secnd_df <- read.csv(opt$secnd_path, header = T, check.names = F,
 print("Data loaded!")
 
 final_table <- merge(first_df, secnd_df, all = TRUE, by = 0)
+
+# row.names(final_table) <- final_table[,"Row.names"]
 
 final_table[,opt$id_var] <- final_table[,"Row.names"]
 final_table <- final_table[,!names(final_table) %in% c("Row.names")]

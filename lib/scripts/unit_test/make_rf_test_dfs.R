@@ -3,6 +3,7 @@
 # Need at least one numeric column and one categorical column
 
 rm(list = ls()) #clear workspace
+chooseCRANmirror(graphics=FALSE, ind=66)
 
 pwd <- getwd()
 print(paste("Working in", pwd))
