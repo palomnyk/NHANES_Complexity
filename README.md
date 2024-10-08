@@ -27,10 +27,13 @@ snakemake --profile workflow/config
 
 `snakemake --dry-run`
 ##### Drawing diagram of workflow
-`snakemake --dag |dot -Tpdf > workflow/reports/dag_2015.pdf`
-snakemake --forceall --dag |dot -Tpdf > workflow/reports/dag_2015.pdf
+`snakemake --dag | dot -Tpdf > workflow/reports/dag_2015.pdf`
+snakemake --forceall --dag |dot -Tpdf > workflow/reports/fa_dag_2015.pdf
+snakemake --rulegraph | dot -Tpdf > workflow/reports/rulegraph_2015.pdf
 
 `snakemake --software-deployment-method conda --cores 1 rf_cardio_cat_g`
+
+snakemake --report reports/report.html
 
 conda env update --file workflow/config/config.yaml
 
