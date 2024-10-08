@@ -54,12 +54,13 @@ def get_test_resp_column_names(wildcards):
 	df = pd.read_csv(df_path, sep=",", header=0)
 	return expand("output/unit_test/tables/1col{test_column}?rf_test_scores.csv", test_column=df.columns.values)
 
-rule get_test_rf_resp_features:
-    input: get_test_resp_column_names
+# rule get_test_rf_resp_features:
+#     input: get_test_resp_column_names
 
 rule aggregate_rf_tables_test_data:
 	conda:"env/python_conda_env.yml"
-	input: rules.get_test_rf_resp_features.input[0]
+	input: get_test_resp_column_names
+	# input: rules.get_test_rf_resp_features.input[0]
 	output: "output/unit_test/tables/rf_test_scores.csv"
 	shell:
 		"""
@@ -128,7 +129,7 @@ checkpoint create_diets_d1_2015:
 	input:
 		food_codes = os.path.join("Data", "diet", "WWEIA1516_foodcat_FNDDS.xlsx"),
 	output:
-		expand("Data/diet/d1_{diet_org}_2015.csv", diet_org=diet_orgs)
+		expand("Data/diet/{day}-{diet_org}-2015.csv", diet_org=diet_orgs, day="d1")
 	resources:
 		runtime=240, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem_mb="16gb"
@@ -140,7 +141,7 @@ checkpoint create_diets_d1_2015:
 rule create_diets_d1d2_2015:
 	conda:"env/python_conda_env.yml",
 	output:
-		expand("Data/diet/d1d2_{diet_org}_2015.csv", diet_org=diet_orgs),
+		expand("Data/diet/{day}-{diet_org}-2015.csv", diet_org=diet_orgs, day="d1d2"),
 	resources:
 		runtime=240, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem="16gb"
@@ -149,31 +150,13 @@ rule create_diets_d1d2_2015:
 		Rscript lib/scripts/data_org/import_org_diet_2015_d1d2.R
 		"""
 
-rule help_diets_d1_2015:
+rule help_diets_2009_2020:
 	conda:"env/python_conda_env.yml"
 	input:
 		# aggregate_input,
-		diet_org = "Data/diet/d1_{diet_org}_2015.csv",
+		diet_org = "Data/diet/{day}-{diet_org}-2015.csv",
 		helper = "Data/demo/helper_features_2009-2020.csv"
-	output: "Data/diet/helper_d1_{diet_org}_2015.csv"
-	resources:
-		runtime=60, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
-		mem="16gb"
-	shell:
-		"""
-		Rscript lib/scripts/data_org/combine_2_csv.R\
-			--first_path {input.diet_org}\
-			--secnd_path {input.helper}\
-			--out_path {output}
-		"""
-
-rule help_diets_d1d2_2015:
-	conda:"env/python_conda_env.yml"
-	input:
-		# aggregate_input,
-		diet_org = "Data/diet/d1d2_{diet_org}_2015.csv",
-		helper = "Data/demo/helper_features_2009-2020.csv"
-	output: "Data/diet/helper_d1d2_{diet_org}_2015.csv"
+	output: "Data/diet/helper-{day}-{diet_org}-2015.csv"
 	resources:
 		runtime=60, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem="16gb"
@@ -198,15 +181,15 @@ checkpoint create_resp_var_table_2015:
 		Rscript lib/scripts/data_org/organize_response_vars.R
 		"""
 
-rule rand_forest_d1_2015_VS_cardio_features:
+rule rand_forest_2015_VS_cardio_features:
 	conda:"env/python_conda_env.yml",
 	input:
 		resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
-		diet_data = "Data/diet/helper_d1_{diet_org}_2015.csv"
+		diet_data = "Data/diet/helper-{day}-{diet_org}-2015.csv"
 	output:
-		"output/proper_days/tables/{diet_org}-d1-2015_scores.csv",
+		"output/proper_days/tables/{diet_org}-{day}-2015_scores.csv",
 	resources:
-		runtime=2880, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
+		runtime=8000, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
 		mem="60gb"
 	shell: 
 		"""
@@ -217,27 +200,6 @@ rule rand_forest_d1_2015_VS_cardio_features:
 			--pred_path {input.diet_data} \
 			--out_folder proper_days \
 			--output_label {wildcards.diet_org}-d1-2015
-		"""
-
-rule rand_forest_d1d2_2015_VS_cardio_features:
-	conda:"env/python_conda_env.yml",
-	input:
-		resp_var = os.path.join("Data","respns_vars", "cardio_respns_vars.csv"),
-		diet_data = "Data/diet/helper_d1d2_{diet_org}_2015.csv"
-	output:
-		"output/proper_days/tables/{diet_org}-d1d2-2015_scores.csv"
-	resources:
-		runtime=2880, #format: M, M:S, H:M:S, D-H, D-H:M, or D-H:M:S
-		mem="60gb"
-	shell: 
-		"""
-		echo {wildcards.diet_org}
-		python lib/scripts/ml/rf-resp_df.py \
-			--response_fn {input.resp_var} \
-			--delimeter , \
-			--pred_path {input.diet_data} \
-			--out_folder proper_days \
-			--output_label {wildcards.diet_org}-d1d2-2015
 		"""
 
 rule diet_org_2015_comparison:
