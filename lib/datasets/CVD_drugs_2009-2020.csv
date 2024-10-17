@@ -1,0 +1,11 @@
+year_start,year_end,dt_group,nh_table,column_short_name,column_long_name,our_name
+2009,2010,Q,BPQ_F,BPQ050A,Now taking prescribed medicine for HBP,taking_HBP_drug
+2009,2010,Q,BPQ_F,BPQ100D,Now taking prescribed medicine for HBP,taking_cholest_drug
+2011,2012,Q,BPQ_G,BPQ050A,Now taking prescribed medicine for HBP,taking_HBP_drug
+2011,2012,Q,BPQ_G,BPQ100D,Now taking prescribed medicine for HBP,taking_cholest_drug
+2013,2014,Q,BPQ_H,BPQ050A,Now taking prescribed medicine for HBP,taking_HBP_drug
+2013,2014,Q,BPQ_H,BPQ100D,Now taking prescribed medicine for HBP,taking_cholest_drug
+2015,2016,Q,BPQ_I,BPQ050A,Now taking prescribed medicine for HBP,taking_HBP_drug
+2015,2016,Q,BPQ_I,BPQ100D,Now taking prescribed medicine for HBP,taking_cholest_drug
+2017,2020,Q,P_BPQ,BPQ050A,Now taking prescribed medicine for HBP,taking_HBP_drug
+2017,2020,Q,P_BPQ,BPQ100D,Now taking prescribed medicine for HBP,taking_cholest_drug
