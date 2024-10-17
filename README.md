@@ -13,6 +13,10 @@ https://www.ars.usda.gov/ARSUserFiles/80400530/apps/WWEIA2017_March2020_foodcat_
 
 https://www.ars.usda.gov/ARSUserFiles/80400530/apps/WWEIA1516_foodcat_FNDDS.xlsx
 
+Files for WWEIA categories came from here:
+https://www.ars.usda.gov/northeast-area/beltsville-md-bhnrc/beltsville-human-nutrition-research-center/food-surveys-research-group/docs/dmr-food-categories/
+
+
 ### Useful commands
 #### Linux
 ##### Remove files older than 9 days
