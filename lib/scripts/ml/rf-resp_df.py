@@ -13,14 +13,10 @@
 print("Loading external libraries.",flush = True)
 # --------------------------------------------------------------------------
 from cProfile import label
-import math
 import os, sys
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
-from pandas.api.types import is_string_dtype
-from pandas.api.types import is_bool_dtype
-from pandas.api.types import is_categorical_dtype
 from sklearn.metrics import accuracy_score, roc_auc_score, r2_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import ConfusionMatrixDisplay
@@ -28,33 +24,23 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
 import matplotlib.backends.backend_pdf
-import matplotlib.colors as mcolors
-import matplotlib
+# import matplotlib
 # matplotlib.use('TKAgg')
 from sklearn import model_selection
-from sklearn.linear_model import LogisticRegression
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.naive_bayes import GaussianNB
-from sklearn.svm import SVC
-from scipy import stats
 import argparse
 import random
 import pathlib
 import pdb
 import shap
+from joblib import dump,load
 # import plotnine
 
 # QT_DEBUG_PLUGINS=1
 # --------------------------------------------------------------------------
 print("Reading commmandline input with optparse.", flush = True)
 # --------------------------------------------------------------------------
-
 parser = argparse.ArgumentParser(description="This script runs a random forest test on various datasets.")
 parser.add_argument("-e", "--pred_path", dest="pred_table", 
 				  default = "Data/unit_test/mtc_predictor.csv",
@@ -81,8 +67,10 @@ parser.add_argument("-v", "--id_var", default="Respondent sequence number",
                   help="String, column name of row variables",
                   metavar="id_var", dest="id_var")
 parser.add_argument("-s", "--respons_df_start", default=0, type=int,
-                  help="integer, use if wanting to skip first _____ column. use if response_col isn't selected",
+                  help="integer, use if wanting to skip first _____ column of response_fn. use if response_col isn't selected",
                   metavar="respons_df_start", dest="respons_df_start")
+parser.add_argument("-m", "--use_saved_model", default=False, type=bool,
+                  help="Boolean: use saved model and only make figures, if it exists, or train new model (false).")
 
 options, unknown = parser.parse_known_args()
 
@@ -115,7 +103,6 @@ if options.title == False:
 
 response_df = pd.read_csv(os.path.join(".",options.resp_fn), \
 		sep=",", header=0).replace("TRUE", True).replace("FALSE", False)
-# print(response_df.columns)
 
 #set labels for output files and select column to use in response var
 if options.response_col == False:
@@ -123,20 +110,20 @@ if options.response_col == False:
 	resp_col_label = ""
 else:
 	response_cols = [options.response_col]
-	resp_col_label = f"1col{options.response_col}?"
+	resp_col_label = f"1col{options.response_col}!"
 response_df = response_df.sort_values(by = options.id_var)
-# print(options.id_vuar)
+# print(options.id_var)
 pred_df = pd.read_csv(os.path.join(".",options.pred_table), \
 		sep=",", header=0, index_col=options.id_var).fillna(0)
-# print(pred_df)
+print(f"predictor shap: {pred_df.shape}")
 pred_df = pred_df.sort_values(by = options.id_var)
 id_list = response_df.loc[:,options.id_var]
 
 #output files
-output_label = f"{resp_col_label}{options.output_label}"
-output_label = output_label.replace("/", "")
+output_label = f"{resp_col_label}{options.output_label}".replace("/", "")
 result_fpath = os.path.join(output_dir, "tables", f"{output_label}_scores.csv")
 pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_feat_import.pdf")
+feat_imp_fpath = os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv")
 
 seed = 7
 
@@ -153,69 +140,82 @@ with open(result_fpath, "w+") as fl:
 	model_type = []#model in same order of lists holding the importance scores of feature_importances
 	full_accuracy = []
 	for resp_var in response_cols:
+		pred_path_name = pathlib.PurePath(options.pred_table).name
+		model_fname = f"sklearnRF-{num_cv_folds}-{n_trees}-{pred_path_name}-{resp_var}.mdl"
+		model_path = pathlib.Path("lib","models",model_fname)
 		resp_safe_ids = response_df.loc[response_df[resp_var ].notna(), options.id_var]
 		intersect_safe_ids = list(set(resp_safe_ids) & set(pred_df.index))
 		print(f"num safe ids {len(resp_safe_ids)}")
-		# print(resp_safe_ids)
-		my_accuracy = []
+		single_resp_accu = []
 		responses = []
 		predictions = []
 		kfold = model_selection.KFold(n_splits=num_cv_folds, random_state=seed, shuffle=True)
-		for train, test in kfold.split(intersect_safe_ids):
-			print(f"{resp_var}: train: {len(train)}, test: {len(test)}")
-			train = [intersect_safe_ids[x] for x in train]
-			test = [intersect_safe_ids[x] for x in test]
-			pred_train = pred_df.loc[pred_df.index.isin(train),:]#selects whole dataframe
-			pred_test = pred_df.loc[pred_df.index.isin(test),:]
-			# print(pred_train.shape)
-			resp_train = response_df.loc[ response_df[options.id_var].isin(train).tolist() , resp_var ].convert_dtypes()
-			resp_test = response_df.loc[ response_df[options.id_var].isin(test).tolist() , resp_var ].convert_dtypes()
-			print(f"len resp_train {len(resp_train)}, {resp_train.dtype}")
-			if is_numeric_dtype(resp_train) and resp_train.dtype.name != "boolean":
-				print(f"going to RandomForestRegressor(), {resp_var }")
-				clf = RandomForestRegressor(n_estimators=n_trees)
-				model_name = "RF_Regressor"
-			else:
-				print("going to RandomForestClassifier()")
-				clf = RandomForestClassifier(n_estimators=n_trees)
-				model_name = "RF_Classifier"
-			
-			model_type.append(model_name)
-			clf.fit(pred_train, resp_train)
-			print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
-			#add feature importance to global feature_importance
-			k_feat_import = dict(zip(clf.feature_names_in_, clf.feature_importances_))
-			for key in k_feat_import:
-				# Append the value associated with the 'key' to the list for that 'key' in 'result'.
-				if key in feature_importance:
-					feature_importance[key].append(k_feat_import[key])
-					# print(f"if {key}")
+		if options.use_saved_model == False:
+			for train, test in kfold.split(intersect_safe_ids):
+				print(f"{resp_var}: train: {len(train)}, test: {len(test)}")
+				train = [intersect_safe_ids[x] for x in train]
+				test = [intersect_safe_ids[x] for x in test]
+				pred_train = pred_df.loc[pred_df.index.isin(train),:]#selects whole dataframe
+				pred_test = pred_df.loc[pred_df.index.isin(test),:]
+				# print(pred_train.shape)
+				resp_train = response_df.loc[response_df[options.id_var].isin(train).tolist(), resp_var].convert_dtypes()
+				resp_test = response_df.loc[response_df[options.id_var].isin(test).tolist(), resp_var].convert_dtypes()
+				print(f"len resp_train {len(resp_train)}, {resp_train.dtype}")
+				if is_numeric_dtype(resp_train) and resp_train.dtype.name != "boolean":
+					print(f"going to RandomForestRegressor(), {resp_var }")
+					clf = RandomForestRegressor(n_estimators=n_trees)
+					model_name = "RF_Regressor"
 				else:
-					# print(f"else {key}")
-					feature_importance[key] = [k_feat_import[key]]
+					print("going to RandomForestClassifier()")
+					clf = RandomForestClassifier(n_estimators=n_trees)
+					model_name = "RF_Classifier"
+				
+				model_type.append(model_name)
+				clf.fit(pred_train, resp_train)
+				print(f"len(feat_vales) {len(clf.feature_importances_)}, len(names) {len(clf.feature_names_in_)}")
+				#add feature importance to global feature_importance
+				k_feat_import = dict(zip(clf.feature_names_in_, clf.feature_importances_))
+				for key in k_feat_import:
+					# Append the value associated with the 'key' to the list for that 'key' in 'result'.
+					if key in feature_importance:
+						feature_importance[key].append(k_feat_import[key])
+					else:
+						feature_importance[key] = [k_feat_import[key]]
+				feature_resp_var.append(resp_var)
+				modl_predict = clf.predict(pred_test)
+				predictions.extend(modl_predict)
+				responses.extend(resp_test)
+				my_score = clf.score(pred_test, resp_test, sample_weight=None)
+				# my_score = r2_score(resp_test, modl_predict, sample_weight=None)
+				single_resp_accu.append(my_score)
 
-			feature_resp_var.append(resp_var)
-			modl_predict = clf.predict(pred_test)
-			predictions.extend(modl_predict)
-			responses.extend(resp_test)
-			my_score = clf.score(pred_test, resp_test, sample_weight=None)
-			# my_score = r2_score(resp_test, modl_predict, sample_weight=None)
-			my_accuracy.append(my_score)
-
-			final_acc = ",".join(map(str, my_accuracy))
-			# print(final_acc)
+			final_acc = ",".join(map(str, single_resp_accu))
 			msg = f"{model_name},{resp_var },{final_acc}\n"
 			print(msg, flush=True)
 			fl.write(msg)
+			full_accuracy.extend(single_resp_accu)
 
-		print("debug feature_importance")
-		# print(feature_importance)
-		full_accuracy.extend(my_accuracy)
-		# rebuild feature importance df and select only rows from our response variable
-		feature_df = pd.DataFrame(feature_importance)
-		my_rows = [n for n,x in enumerate(feature_resp_var) if x==resp_var]
-		feature_df = feature_df.loc[my_rows,:]
-		
+			print("Saving progress so far.")
+			dump(clf, model_path)
+			feature_df = pd.DataFrame(feature_importance)
+			feature_df.insert(loc = 0,column = "response_var", value = feature_resp_var, allow_duplicates=False)
+			feature_df.insert(loc = 1,column =  "model_type",value = model_type, allow_duplicates=False)
+			feature_df.insert(loc = 2,column =  "accuracy",value = full_accuracy, allow_duplicates=False)
+			feature_df.to_csv(feat_imp_fpath, index = False)
+			pred_train.to_csv(f"{feat_imp_fpath}_pred.csv", index = False)
+			# resp_test.to_csv(f"{feat_imp_fpath}_resp.csv", index = False)
+		else:
+			if model_path.is_file():
+				# rebuild feature importance df and select only rows from our response variable
+				clf = load(model_path)
+				feature_df = pd.read_csv(feat_imp_fpath, sep=",", header=0)
+				pred_train = pd.read_csv(f"{feat_imp_fpath}_pred.csv", header=0, index_col=None)
+			else:
+				print(f"{model_path} does not exist.")
+		feature_df = feature_df.loc[feature_df["response_var"] == resp_var,:]
+		ave_score = np.mean(feature_df["accuracy"])
+		model_name = list(feature_df["model_type"])[0]
+		feature_df = feature_df.iloc[:,3:]
 		# Order the features by importance
 		# feature_df = feature_df.reindex(feature_df.mean().sort_values(ascending=False).index, axis=1)
 		feature_mean = pd.DataFrame(feature_df.mean(axis=0)).sort_values(0, ascending=False)
@@ -224,70 +224,70 @@ with open(result_fpath, "w+") as fl:
 		plt.barh(y=feature_mean.index[0:bar_shown], width=feature_mean.iloc[0:bar_shown,0], xerr=feature_mean.iloc[0:bar_shown,1])
 		plt.xlabel(f"Top {bar_shown} Relative Importances")
 		plt.xticks(rotation="vertical")
-		plt.title(f"{model_name} score: {round(np.mean(my_accuracy), 3)}")
+		plt.title(f"{model_name} score: {round(ave_score, 3)}")
 		plt.suptitle(f"Feature importance: {resp_var}")
 		pdf.savefig(bbox_inches='tight')
 		plt.close()
-		if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
-			print("making confusion matrix")
+		print("Created feature importance figure", flush=True)
+		# if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
+		if model_name == "RF_Classifier" and options.use_saved_model == False:
+			print("making confusion matrix", flush=True)
 			cnf_matrix = confusion_matrix(responses, predictions)
-			# print(str(cnf_matrix))
 			disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix).plot()
 			plt.title(f"{options.title}, {resp_var}")
 			pdf.savefig()
 			plt.close()
 		try:
-			explainer = shap.Explainer(clf, pred_df)
-			shap_values = explainer(pred_df)
-			print("shape_values.shape")
-			print(shap_values.shape)
+			print("trying beeswarm plot", flush=True)
+			explainer = shap.Explainer(clf, pred_train)
+			print("Creating shap_alues", flush=True)
+			shap_values = explainer(pred_train)
+			print("shape_values.shape", flush=True)
+			print(shap_values.shape, flush=True)
 			if model_name == "RF_Classifier":
-				print(shap_values)
+				print(model_name)
+				# print(shap_values)
 				# max_display=bar_shown, order=shap_values[:,:,1].abs.max(0)
 				shap.plots.beeswarm(shap_values[:,:,1], show = False)
 				plt.suptitle(f"Final cross validation\nSHAP beeswarm, {resp_var}")
 				pdf.savefig(bbox_inches='tight')
 				plt.close()
 			else:
-				shap.plots.beeswarm(shap_values, show = False, order=shap_values.abs.max(0))
-				plt.suptitle(f"Final cross validation\nSHAP beeswarm, {resp_var}")
+				shap.plots.beeswarm(shap_values,check_additivity=False, show = False, order=shap_values.abs.max(0))
+				plt.suptitle(f"Final cross validation\nSHAP beeswarm, {resp_var} {model_name}")
 				pdf.savefig(bbox_inches='tight')
 				plt.close()
 		except Exception as e:
-			print(f"Exception: shap summary {resp_var}")
-			print(e)
-		try:
-			top_features = feature_mean.index[0:3].tolist()
-			# shap.dependence_plot("wt", shap_values, pred_df)
-			for dep in top_features:
-				print(dep)
-				shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
-				shap.dependence_plot(dep, shap_values, pred_df, show = False,)
-				plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
-				pdf.savefig(bbox_inches='tight')
-				plt.close()
-		except Exception as e:
-			print(f"Exception: shap dependency {resp_var}")
-			print(e)
-		try:
-			shap_values = shap.TreeExplainer(clf).shap_values(pred_df)
-			shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train, show=False)
-			plt.suptitle(f"Final cross validation\nSHAP decision, {resp_var}")
-			pdf.savefig()
-			plt.close()
-		except Exception as e:
-			print(f"Exception: shap decision {resp_var}")
-			print(e)
-			
-	print(f"Saving feature importances")
-	feature_df = pd.DataFrame(feature_importance)
-	print(feature_df)
-	print(len(model_type))
-	# df["response_var"] = feature_resp_var
-	feature_df.insert(loc = 0,column = "response_var", value = feature_resp_var, allow_duplicates=False)
-	feature_df.insert(loc = 1,column =  "model_type",value = model_type, allow_duplicates=False)
-	feature_df.insert(loc = 2,column =  "accuracy",value = full_accuracy, allow_duplicates=False)
-	feature_df.to_csv(os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv"))
+			print(f"Exception: shap summary {resp_var} model type: {model_name}", flush=True)
+			print(e, flush=True)
+		# try:
+		# 	print("Trying dependency plot", flush=True)
+		# 	top_features = feature_mean.index[0:3].tolist()
+		# 	# shap.dependence_plot("wt", shap_values, pred_df)
+		# 	for dep in top_features:
+		# 		print(dep, flush=True)
+		# 		shap_values = shap.TreeExplainer(clf).shap_values(pred_train)
+		# 		shap.dependence_plot(dep, shap_values, pred_train, show = False,)
+		# 		plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
+		# 		pdf.savefig(bbox_inches='tight')
+		# 		plt.close()
+		# except Exception as e:
+		# 	print(f"Exception: shap dependency {resp_var}", flush=True)
+		# 	print(e, flush=True)
+		# try:
+		# 	print("TreeExplainer", flush=True)
+		# 	shap_values = shap.TreeExplainer(clf).shap_values(pred_train)
+		# 	print("shap_values.shape", flush=True)
+		# 	# print(shap_values.shape, flush=True)
+		# 	shap.decision_plot(shap.TreeExplainer(clf).expected_value, shap_values, pred_train, show=False)
+		# 	plt.suptitle(f"Final cross validation\nSHAP decision, {resp_var}")
+		# 	pdf.savefig()
+		# 	plt.close()
+		# except Exception as e:
+		# 	print(f"Exception: shap decision {resp_var}", flush=True)
+		# 	print(e, flush=True)			
+		print(f"Completed SHAP figures", flush=True)
+
 print("Saving pdf", flush = True)
 pdf.close()
 
