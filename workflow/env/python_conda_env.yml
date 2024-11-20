@@ -25,7 +25,8 @@ dependencies:
   - r-base=4.3
   - r-ggplot2
   - r-BiocManager
-  - r-nhanesA
+  - r-optparse
+  # - r-nhanesA
   - r-readxl
   - r-fastDummies
 
