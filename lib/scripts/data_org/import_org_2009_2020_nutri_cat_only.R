@@ -148,7 +148,7 @@ save_df <- merge(cat_g_only, num_uniq_foods, by = "Respondent sequence number")
 write.csv(save_df, file = file.path(output_dir, "all_days-cat_g-2009_2020.csv"),
           row.names = FALSE)
 
-all_days_nutri_cat_g <- merge(cat_g_only, num_uniq_foods, by = "Respondent sequence number")
+all_days_nutri_cat_g <- merge(nutr_multi_yr_diet, cat_g_only, by = "Respondent sequence number")
 
 save_df <- merge(all_days_nutri_cat_g, num_uniq_foods, by = "Respondent sequence number")
 write.csv(save_df, file = file.path(output_dir, "all_days-nutri_cat_g-2009_2020.csv"),
