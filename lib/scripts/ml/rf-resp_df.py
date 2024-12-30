@@ -102,6 +102,7 @@ col_names = ["model", "response_var"]
 num_cv_folds = 10
 n_trees = 1000
 bar_shown = 25
+score_threshold_SHAP = 0.01 #score to make SHAP plots after RF runs
 col_names = col_names + [f"split{x}" for x in range(num_cv_folds)]
 if options.title == False:
 	options.title == options.output_label
@@ -126,6 +127,7 @@ id_list = response_df.loc[:,options.id_var]
 
 #output files
 output_label = f"{resp_col_label}{options.output_label}".replace("/", "／")
+model_storage = pathlib.Path("lib", "models")
 result_fpath = os.path.join(output_dir, "tables", f"{output_label}_scores.csv")
 pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_feat_import.pdf")
 feat_imp_fpath = os.path.join(output_dir, "tables", f"feat_imp_{output_label}.csv")
@@ -146,8 +148,9 @@ with open(result_fpath, "w+") as fl:
 	full_accuracy = []
 	for resp_var in response_cols:
 		pred_path_name = pathlib.PurePath(options.pred_table).name
-		model_fname = f"sklearnRF-{num_cv_folds}-{n_trees}-{pred_path_name}-{resp_var}.mdl"
-		model_path = pathlib.Path("lib","models",model_fname)
+		clean_resp_var = resp_var.replace("/", ".")
+		model_fname = f"sklearnRF-{num_cv_folds}-{n_trees}-{pred_path_name}-{clean_resp_var}.mdl"
+		model_path = pathlib.Path(model_storage, model_fname)
 		resp_safe_ids = response_df.loc[response_df[resp_var ].notna(), options.id_var]
 		intersect_safe_ids = list(set(resp_safe_ids) & set(pred_df.index))
 		print(f"num safe ids {len(resp_safe_ids)}")
@@ -246,9 +249,9 @@ with open(result_fpath, "w+") as fl:
 		# fig.savefig('rf_5trees.png')
 		pdf.savefig(bbox_inches='tight')
 		plt.close()
-		print(resp_test)
-		print(type(resp_test))
-		print(resp_test.index)
+		# print(resp_test)
+		# print(type(resp_test))
+		# print(resp_test.index)
 		print("Created feature importance figure", flush=True)
 		# if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
 		if model_name == "RF_Classifier" and options.use_saved_model == False:
@@ -276,41 +279,41 @@ with open(result_fpath, "w+") as fl:
 			pdf.savefig(bbox_inches='tight')
 			plt.close()
 
-			shap.plots.waterfall(shap_values[0,:,0], max_display=bar_shown, show=False)
-			#works like this: shap.plots.waterfall(explanation[id_to_explain,:,output_to_explain])
-			pdf.savefig(bbox_inches='tight')
-			plt.close()
+			# shap.plots.waterfall(shap_values[0,:,0], max_display=bar_shown, show=False)
+			# #works like this: shap.plots.waterfall(explanation[id_to_explain,:,output_to_explain])
+			# pdf.savefig(bbox_inches='tight')
+			# plt.close()
 
-			for dep in top_features:
-				print(f"{dep}, {model_name}", flush=True)
-				pathlib.Path(os.path.join(".",output_dir, "graphics",f"{output_label}_{resp_var}")).mkdir(parents=True, exist_ok=True) 
-				dep_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_SHAPdep_{dep}.pdf")
-				dep_pdf = matplotlib.backends.backend_pdf.PdfPages(dep_pdf_fpath)
-				shap_values = shap.TreeExplainer(clf).shap_values(pred_train)
-				shap.dependence_plot(dep, explainer.shap_values(pred_train)[:,:,1], pred_train, show = False,)
-				plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
-				dep_pdf.savefig(bbox_inches='tight')
-				plt.close()
+			# for dep in top_features:
+			# 	print(f"{dep}, {model_name}", flush=True)
+			# 	# pathlib.Path(os.path.join(".",output_dir, "graphics",f"{output_label}_{resp_var}")).mkdir(parents=True, exist_ok=True) 
+			# 	# dep_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_SHAPdep_{dep}.pdf")
+			# 	# dep_pdf = matplotlib.backends.backend_pdf.PdfPages(dep_pdf_fpath)
+			# 	shap_values = shap.TreeExplainer(clf).shap_values(pred_train)
+			# 	shap.dependence_plot(dep, explainer.shap_values(pred_train)[:,:,1], pred_train, show = False,)
+			# 	plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
+			# 	pdf.savefig(bbox_inches='tight')
+			# 	plt.close()
 		else:
 			shap.plots.beeswarm(shap_values, show = False, max_display=bar_shown, order=shap_values.abs.max(0))
 			plt.suptitle(f"Final cross val, {resp_var}, {model_name} score: {round(ave_score, 3)}")
 			pdf.savefig(bbox_inches='tight')
 			plt.close()
 
-			shap.plots.waterfall(shap_values[0], max_display=bar_shown, show=False)
-			pdf.savefig(bbox_inches='tight')
-			plt.close()
+			# shap.plots.waterfall(shap_values[0], max_display=bar_shown, show=False)
+			# pdf.savefig(bbox_inches='tight')
+			# plt.close()
 
-			for dep in top_features:
-				print(f"{dep}, {model_name}", flush=True)
-				pathlib.Path(os.path.join(".",output_dir, "graphics",f"{output_label}_{resp_var}")).mkdir(parents=True, exist_ok=True) 
-				dep_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_SHAPdep_{dep}.pdf")
-				dep_pdf = matplotlib.backends.backend_pdf.PdfPages(dep_pdf_fpath)
-				shap_values = shap.TreeExplainer(clf).shap_values(pred_train)
-				shap.dependence_plot(dep, explainer.shap_values(pred_train), pred_train, show = False,)
-				plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
-				dep_pdf.savefig(bbox_inches='tight')
-				plt.close()
+			# for dep in top_features:
+			# 	print(f"{dep}, {model_name}", flush=True)
+			# 	# pathlib.Path(os.path.join(".",output_dir, "graphics",f"{output_label}_{resp_var}")).mkdir(parents=True, exist_ok=True) 
+			# 	# dep_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_SHAPdep_{dep}.pdf")
+			# 	# dep_pdf = matplotlib.backends.backend_pdf.PdfPages(dep_pdf_fpath)
+			# 	shap_values = shap.TreeExplainer(clf).shap_values(pred_train)
+			# 	shap.dependence_plot(dep, explainer.shap_values(pred_train), pred_train, show = False,)
+			# 	plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
+			# 	pdf.savefig(bbox_inches='tight')
+			# 	plt.close()
 				# my_quantiles = np.quantile(a=resp_train, q=[0, 0.25, 0.5, 0.75, 1], method="closest_observation")
 		# except Exception as e:
 		# 	print(f"Exception: shap summary {resp_var} model type: {model_name}", flush=True)
@@ -319,17 +322,17 @@ with open(result_fpath, "w+") as fl:
 		# 		print(f"Exception: shap dependency {resp_var}", flush=True)
 		# 		print(e, flush=True)
 		# try:
-			# print("TreeExplainer", flush=True)
-			# tree_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_{resp_var}_SHAPtree.pdf")
-			# tree_pdf = matplotlib.backends.backend_pdf.PdfPages(tree_pdf_fpath)
-			# tree_explainer = shap.TreeExplainer(clf)
-			# shap_values = tree_explainer.shap_values(pred_train)
-			# print("shap_values.shape", flush=True)
-			# shap.decision_plot(tree_explainer.expected_value, shap_values, pred_train, show=False)
-			# plt.suptitle(f"Final cross validation\nSHAP decision, {resp_var}")
-			# tree_pdf.savefig()
-			# tree_pdf.close()
-			# plt.close()
+		# 	print("TreeExplainer", flush=True)
+		# 	tree_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_{resp_var}_SHAPtree.pdf")
+		# 	tree_pdf = matplotlib.backends.backend_pdf.PdfPages(tree_pdf_fpath)
+		# 	tree_explainer = shap.TreeExplainer(clf)
+		# 	shap_values = tree_explainer.shap_values(pred_train)
+		# 	print("shap_values.shape", flush=True)
+		# 	shap.decision_plot(tree_explainer.expected_value, shap_values, pred_train, show=False)
+		# 	plt.suptitle(f"Final cross validation\nSHAP decision, {resp_var}")
+		# 	tree_pdf.savefig()
+		# 	tree_pdf.close()
+		# 	plt.close()
 		# except Exception as e:
 		# 	print(f"Exception: shap decision {resp_var}", flush=True)
 		# 	print(e, flush=True)			
