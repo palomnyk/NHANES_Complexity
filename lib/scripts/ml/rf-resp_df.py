@@ -160,7 +160,7 @@ with open(result_fpath, "w+") as fl:
 			predictions = []
 			kfold = model_selection.KFold(n_splits=num_cv_folds, random_state=seed, shuffle=True)
 			for train, test in kfold.split(intersect_safe_ids):
-				print(f"{resp_var}: train: {len(train)}, test: {len(test)}")
+				print(f"{resp_var}: train: {len(train)}, test: {len(test)}", flush = True)
 				train = [intersect_safe_ids[x] for x in train]
 				test = [intersect_safe_ids[x] for x in test]
 				pred_train = pred_df.loc[pred_df.index.isin(train),:]#selects whole dataframe
@@ -208,8 +208,8 @@ with open(result_fpath, "w+") as fl:
 			dump(clf, model_path)
 			feature_df = pd.DataFrame(feature_importance)
 			feature_df.insert(loc = 0,column = "response_var", value = feature_resp_var, allow_duplicates=False)
-			feature_df.insert(loc = 1,column =  "model_type",value = model_type, allow_duplicates=False)
-			feature_df.insert(loc = 2,column =  "accuracy",value = full_accuracy, allow_duplicates=False)
+			feature_df.insert(loc = 1,column = "model_type",value = model_type, allow_duplicates=False)
+			feature_df.insert(loc = 2,column = "accuracy",value = full_accuracy, allow_duplicates=False)
 			feature_df.to_csv(feat_imp_fpath, index = False)
 			pred_train.to_csv(f"{feat_imp_fpath}_pred.csv", index = True)
 			# resp_test.to_csv(f"{feat_imp_fpath}_resp.csv", index = False)
@@ -238,105 +238,82 @@ with open(result_fpath, "w+") as fl:
 		pdf.savefig(bbox_inches='tight')
 		plt.close()
 
-		fig, axes = plt.subplots(nrows = 1,ncols = 5,figsize = (10,2), dpi=900)
-		for index in range(0, 5):
-			tree.plot_tree(clf.estimators_[index],
-			feature_names = pred_train.columns.tolist(), 
-			# class_names=cn,
-			filled = True,
-			ax = axes[index])
-			axes[index].set_title('Estimator: ' + str(index), fontsize = 11)
-		# fig.savefig('rf_5trees.png')
-		pdf.savefig(bbox_inches='tight')
-		plt.close()
-		# print(resp_test)
-		# print(type(resp_test))
-		# print(resp_test.index)
-		print("Created feature importance figure", flush=True)
-		# if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
-		if model_name == "RF_Classifier" and options.use_saved_model == False:
-			print("making confusion matrix", flush=True)
-			cnf_matrix = confusion_matrix(responses, predictions)
-			disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix).plot()
-			plt.title(f"{options.title}, {resp_var}")
-			pdf.savefig()
+		if ave_score > score_threshold_SHAP:
+			#Plot 5 random trees
+			fig, axes = plt.subplots(nrows = 1,ncols = 5,figsize = (10,2), dpi=900)
+			for index in range(0, 5):
+				tree.plot_tree(clf.estimators_[index],
+				feature_names = pred_train.columns.tolist(), 
+				# class_names=cn,
+				filled = True,
+				ax = axes[index])
+				axes[index].set_title('Estimator: ' + str(index), fontsize = 11)
+			# fig.savefig('rf_5trees.png')
+			pdf.savefig(bbox_inches='tight')
 			plt.close()
-		# try:
-		print("trying beeswarm plot", flush=True)
-		# explainer = shap.Explainer(clf, pred_train, algorithm="tree", seed=7)
-		explainer = shap.TreeExplainer(clf)
-		print("Creating shap_alues", flush=True)
-		shap_values = explainer(pred_train[feature_mean.index[0:bar_shown]], check_additivity=False)
-		print("shape_values.shape", flush=True)
-		print(shap_values.shape, flush=True)
-		top_features = feature_mean.index[0:5].tolist()
-		if model_name == "RF_Classifier":
-			print(model_name)
-			print(shap_values)
-			# max_display=bar_shown, order=shap_values[:,:,1].abs.max(0)
-			shap.plots.beeswarm(shap_values[:,:,1], max_display=bar_shown, show = False)
+
+			print("Created feature importance figure", flush=True)
+			# if not is_numeric_dtype(resp_train) or resp_train.dtype.name == "boolean":
+			if model_name == "RF_Classifier" and options.use_saved_model == False:
+				print("making confusion matrix", flush=True)
+				cnf_matrix = confusion_matrix(responses, predictions)
+				disp = ConfusionMatrixDisplay(confusion_matrix=cnf_matrix).plot()
+				plt.title(f"{options.title}, {resp_var}")
+				pdf.savefig()
+				plt.close()
+			# try:
+			# explainer = shap.Explainer(clf, pred_train, algorithm="tree", seed=7)
+			explainer = shap.TreeExplainer(clf)
+			print("Creating shap_alues", flush=True)
+			shap_values = explainer(pred_train, check_additivity=False)#[feature_mean.index[0:bar_shown]]
+			print("shape_values.shape", flush=True)
+			print(shap_values.shape, flush=True)
+			top_features = feature_mean.index[0:4].tolist()
+			if model_name == "RF_Classifier":
+				shap_use = shap_values[:,:,1]
+				wf_use = shap_values[0,:,0]
+				dep_use = explainer.shap_values(pred_train)[:,:,1]
+				print(f"trying dependency plot {model_name} ", flush=True)
+				# shap.plots.beeswarm(shap_values[:,:,1], max_display=shap_shown, show = False)
+			else:
+				shap_use = shap_values
+				wf_use = shap_values[0]
+				dep_use = explainer.shap_values(pred_train)
+
+			print(f"trying beeswarm plot {model_name} ", flush=True)
+			shap.plots.beeswarm(shap_use, max_display=shap_shown, show = False)
 			plt.suptitle(f"Final cross val, {resp_var}, {model_name} score: {round(ave_score, 3)}")
 			pdf.savefig(bbox_inches='tight')
 			plt.close()
 
-			# shap.plots.waterfall(shap_values[0,:,0], max_display=bar_shown, show=False)
-			# #works like this: shap.plots.waterfall(explanation[id_to_explain,:,output_to_explain])
-			# pdf.savefig(bbox_inches='tight')
-			# plt.close()
-
-			# for dep in top_features:
-			# 	print(f"{dep}, {model_name}", flush=True)
-			# 	# pathlib.Path(os.path.join(".",output_dir, "graphics",f"{output_label}_{resp_var}")).mkdir(parents=True, exist_ok=True) 
-			# 	# dep_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_SHAPdep_{dep}.pdf")
-			# 	# dep_pdf = matplotlib.backends.backend_pdf.PdfPages(dep_pdf_fpath)
-			# 	shap_values = shap.TreeExplainer(clf).shap_values(pred_train)
-			# 	shap.dependence_plot(dep, explainer.shap_values(pred_train)[:,:,1], pred_train, show = False,)
-			# 	plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
-			# 	pdf.savefig(bbox_inches='tight')
-			# 	plt.close()
-		else:
-			shap.plots.beeswarm(shap_values, show = False, max_display=bar_shown, order=shap_values.abs.max(0))
-			plt.suptitle(f"Final cross val, {resp_var}, {model_name} score: {round(ave_score, 3)}")
+			shap.plots.waterfall(wf_use, max_display=shap_shown, show=False)
+			#works like this: shap.plots.waterfall(explanation[id_to_explain,:,output_to_explain])
 			pdf.savefig(bbox_inches='tight')
 			plt.close()
 
-			# shap.plots.waterfall(shap_values[0], max_display=bar_shown, show=False)
-			# pdf.savefig(bbox_inches='tight')
-			# plt.close()
-
-			# for dep in top_features:
-			# 	print(f"{dep}, {model_name}", flush=True)
-			# 	# pathlib.Path(os.path.join(".",output_dir, "graphics",f"{output_label}_{resp_var}")).mkdir(parents=True, exist_ok=True) 
-			# 	# dep_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_SHAPdep_{dep}.pdf")
-			# 	# dep_pdf = matplotlib.backends.backend_pdf.PdfPages(dep_pdf_fpath)
-			# 	shap_values = shap.TreeExplainer(clf).shap_values(pred_train)
-			# 	shap.dependence_plot(dep, explainer.shap_values(pred_train), pred_train, show = False,)
-			# 	plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
-			# 	pdf.savefig(bbox_inches='tight')
-			# 	plt.close()
-				# my_quantiles = np.quantile(a=resp_train, q=[0, 0.25, 0.5, 0.75, 1], method="closest_observation")
-		# except Exception as e:
-		# 	print(f"Exception: shap summary {resp_var} model type: {model_name}", flush=True)
-		# 	print(e, flush=True)
-		# 	except Exception as e:
-		# 		print(f"Exception: shap dependency {resp_var}", flush=True)
-		# 		print(e, flush=True)
-		# try:
-		# 	print("TreeExplainer", flush=True)
-		# 	tree_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_{resp_var}_SHAPtree.pdf")
-		# 	tree_pdf = matplotlib.backends.backend_pdf.PdfPages(tree_pdf_fpath)
-		# 	tree_explainer = shap.TreeExplainer(clf)
-		# 	shap_values = tree_explainer.shap_values(pred_train)
-		# 	print("shap_values.shape", flush=True)
-		# 	shap.decision_plot(tree_explainer.expected_value, shap_values, pred_train, show=False)
-		# 	plt.suptitle(f"Final cross validation\nSHAP decision, {resp_var}")
-		# 	tree_pdf.savefig()
-		# 	tree_pdf.close()
-		# 	plt.close()
-		# except Exception as e:
-		# 	print(f"Exception: shap decision {resp_var}", flush=True)
-		# 	print(e, flush=True)			
-		print(f"Completed SHAP figures", flush=True)
+			fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 6))
+			axes = axes.ravel() #flattens a n dimentional object to 1 d				
+			for i, dep in enumerate(top_features):
+				print(f"{i} {dep}, {model_name}", flush=True)
+				shap.dependence_plot(dep, dep_use, pred_train, show = False, ax=axes[i])
+				plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
+			pdf.savefig(bbox_inches='tight')
+			plt.close()
+			# matplotlib.rcParams.update(matplotlib.rcParamsDefault)#restore to default
+			try:
+				print("TreeExplainer", flush=True)
+				# tree_pdf_fpath = os.path.join(output_dir, "graphics", f"{output_label}_{resp_var}", f"{output_label}_{resp_var}_SHAPtree.pdf")
+				# tree_pdf = matplotlib.backends.backend_pdf.PdfPages(tree_pdf_fpath)
+				shap_values = explainer.shap_values(pred_train)
+				print("shap_values.shape", flush=True)
+				shap.decision_plot(explainer.expected_value, dep_use, pred_train, show=False)
+				plt.suptitle(f"Final cross validation\nSHAP decision, {resp_var}")
+				pdf.savefig()
+				plt.close()
+			except Exception as e:
+				print(f"Exception: shap decision {resp_var}", flush=True)
+				print(e, flush=True)			
+			print(f"Completed SHAP figures", flush=True)
 
 print("Saving pdf", flush = True)
 pdf.close()
