@@ -102,6 +102,8 @@ col_names = ["model", "response_var"]
 num_cv_folds = 10
 n_trees = 1000
 bar_shown = 25
+shap_shown = 10
+dep_fig_size = (12, 9)#fig size for dependency plots
 score_threshold_SHAP = 0.01 #score to make SHAP plots after RF runs
 col_names = col_names + [f"split{x}" for x in range(num_cv_folds)]
 if options.title == False:
