@@ -102,7 +102,7 @@ col_names = ["model", "response_var"]
 num_cv_folds = 10
 n_trees = 1000
 bar_shown = 25
-shap_shown = 10
+shap_shown = bar_shown
 dep_fig_size = (12, 9)#fig size for dependency plots
 score_threshold_SHAP = 0.01 #score to make SHAP plots after RF runs
 col_names = col_names + [f"split{x}" for x in range(num_cv_folds)]
@@ -274,13 +274,13 @@ with open(result_fpath, "w+") as fl:
 			if model_name == "RF_Classifier":
 				shap_use = shap_values[:,:,1]
 				wf_use = shap_values[0,:,0]
-				dep_use = explainer.shap_values(pred_train)[:,:,1]
+				# dep_use = explainer.shap_values(pred_train, check_additivity=False)[:,:,1]
 				print(f"trying dependency plot {model_name} ", flush=True)
 				# shap.plots.beeswarm(shap_values[:,:,1], max_display=shap_shown, show = False)
 			else:
 				shap_use = shap_values
 				wf_use = shap_values[0]
-				dep_use = explainer.shap_values(pred_train)
+				# dep_use = explainer.shap_values(pred_train)
 
 			print(f"trying beeswarm plot {model_name} ", flush=True)
 			shap.plots.beeswarm(shap_use, max_display=shap_shown, show = False)
@@ -293,14 +293,14 @@ with open(result_fpath, "w+") as fl:
 			pdf.savefig(bbox_inches='tight')
 			plt.close()
 
-			fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 6))
-			axes = axes.ravel() #flattens a n dimentional object to 1 d				
-			for i, dep in enumerate(top_features):
-				print(f"{i} {dep}, {model_name}", flush=True)
-				shap.dependence_plot(dep, dep_use, pred_train, show = False, ax=axes[i])
-				plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
-			pdf.savefig(bbox_inches='tight')
-			plt.close()
+			# fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 6))
+			# axes = axes.ravel() #flattens a n dimentional object to 1 d				
+			# for i, dep in enumerate(top_features):
+			# 	print(f"{i} {dep}, {model_name}", flush=True)
+			# 	shap.dependence_plot(dep, dep_use, pred_train, show = False, ax=axes[i])
+			# 	plt.suptitle(f"Final cross validation\nSHAP dependency, {resp_var}")
+			# pdf.savefig(bbox_inches='tight')
+			# plt.close()
 			# matplotlib.rcParams.update(matplotlib.rcParamsDefault)#restore to default
 			try:
 				print("TreeExplainer", flush=True)
@@ -308,7 +308,7 @@ with open(result_fpath, "w+") as fl:
 				# tree_pdf = matplotlib.backends.backend_pdf.PdfPages(tree_pdf_fpath)
 				shap_values = explainer.shap_values(pred_train)
 				print("shap_values.shape", flush=True)
-				shap.decision_plot(explainer.expected_value, dep_use, pred_train, show=False)
+				shap.decision_plot(explainer.expected_value, explainer.shap_values(pred_train), pred_train, show=False)
 				plt.suptitle(f"Final cross validation\nSHAP decision, {resp_var}")
 				pdf.savefig()
 				plt.close()

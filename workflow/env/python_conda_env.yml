@@ -22,6 +22,7 @@ dependencies:
   - pip
   - shap #for making feature importance plots
   - joblib #for saving and loading models
+  - xgboost
   - r-base=4.3
   - r-ggplot2
   - r-BiocManager
