@@ -1,5 +1,11 @@
 # NHANES_Complexity
 
+This repository holds code and batch files to download dietary, demographic, and markers of cardiovascular health from NHANES, analyze them, and generate reports. This statistical pipeline, which is reproduceable and automated, is managed by Snakemake, version 8+.
+
+Snakemake make relies on rules that commands when specified input is available and look for expected output. This creates a flow of rules, such as:
+![rule graph](workflow/reports/rulegraph_readme.png)
+
+
 ##Developer notes
 ### Data aquisition
 FNDDS for food codes can be found here: https://www.ars.usda.gov/northeast-area/beltsville-md-bhnrc/beltsville-human-nutrition-research-center/food-surveys-research-group/docs/dmr-food-categories/
@@ -32,8 +38,11 @@ snakemake --profile workflow/config
 `snakemake --dry-run`
 ##### Drawing diagram of workflow
 `snakemake --dag | dot -Tpdf > workflow/reports/dag_2015.pdf`
-snakemake --forceall --dag |dot -Tpdf > workflow/reports/fa_dag_2015.pdf
-snakemake --rulegraph | dot -Tpdf > workflow/reports/rulegraph_2015.pdf
+snakemake --forceall --dag |dot -Tpdf > workflow/reports/fa_dag_oct_2024.pdf
+snakemake --rulegraph | dot -Tpdf > workflow/reports/rulegraph_oct_2024.pdf
+
+snakemake --rulegraph --forceall | dot -Tpdf > workflow/reports/rulegraph_readme.png
+snakemake --rulegraph | dot -Tpdf > workflow/reports/rulegraph_readme.png
 
 `snakemake --software-deployment-method conda --cores 1 rf_cardio_cat_g`
 
@@ -180,3 +189,14 @@ conda config --add pkgs_dirs ../conda_from_home/pkgs
 conda config --add envs_dirs ../conda_from_home/envs
 
 /project/nhanes_ml/conda_from_home/envs/python_ml_conda/bin/python3.11
+
+python lib/scripts/ml/rf-resp_df.py\
+  --response_fn Data/respns_vars/2009-2020cardio_respns_vars.csv\
+  --delimeter , \
+  --pred_path Data/diet/multi_year/helper_CVD-all_days-nutri_cat_g-2009_2020.csv \
+  --out_folder proper_days_2009_2020\
+  --output_label pd_2009_2020\
+  --title pd_2009_2020\
+  --response_col Systolic_mean
+
+squeue --format="%.18i %.9P %.80j %.8u %.8T %.10M %.9l %.6D %R" --me
