@@ -1,9 +1,13 @@
-# NHANES_Complexity
+# Overview of project
 
 This repository holds code and batch files to download dietary, demographic, and markers of cardiovascular health from NHANES, analyze them, and generate reports. This statistical pipeline, which is reproduceable and automated, is managed by Snakemake, version 8+.
 
 Snakemake make relies on rules that commands when specified input is available and look for expected output. This creates a flow of rules, such as:
 ![rule graph](workflow/reports/rulegraph_readme.png)
+
+
+Snakemake can us key words to move groups of files through the command line.
+![rule graph](workflow/reports/dag_readme.png)
 
 
 ##Developer notes
@@ -41,8 +45,9 @@ snakemake --profile workflow/config
 snakemake --forceall --dag |dot -Tpdf > workflow/reports/fa_dag_oct_2024.pdf
 snakemake --rulegraph | dot -Tpdf > workflow/reports/rulegraph_oct_2024.pdf
 
-snakemake --rulegraph --forceall | dot -Tpdf > workflow/reports/rulegraph_readme.png
-snakemake --rulegraph | dot -Tpdf > workflow/reports/rulegraph_readme.png
+snakemake --rulegraph --forceall | dot -Tpng > workflow/reports/rulegraph_all_readme.png
+snakemake --rulegraph | dot -Tpng > workflow/reports/rulegraph_readme.png
+snakemake --dag | dot -Tpng > workflow/reports/dag_readme.png
 
 `snakemake --software-deployment-method conda --cores 1 rf_cardio_cat_g`
 
